@@ -1,0 +1,17 @@
+[package]
+name = "jxl-winthumb"
+version = "0.1.0"
+authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winapi = { version = "0.3.9", features = ["minwindef", "winerror", "wtypes", "objidlbase"] }
+intercom = { git = "https://github.com/Rantanen/intercom", rev = "4633ab2e367386375a155420652e8816b69cf924" }
+simple-logging = "2.0"
+log = "0.4"
+kagamijxl = { version = "0.1.0", path = "../jxl-rs/kagamijxl" }
