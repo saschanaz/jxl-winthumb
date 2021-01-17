@@ -55,38 +55,6 @@ impl IInitializeWithStream for ThumbnailProvider {
     }
 }
 
-// TODO: do this with encoder option. For now this is for fun
-fn fit(vec: &Vec<u8>, size: (u32, u32), max_edge: u32) -> (Vec<u8>, u32, u32) {
-    if size <= (max_edge, max_edge) {
-        return (vec.clone(), size.0, size.1);
-    }
-
-    assert_eq!(vec.len(), (size.0 * size.1 * 4) as usize);
-
-    let shrink_ratio = max(size.0, size.1) as f64 / max_edge as f64;
-    let new_size = (
-        (size.0 as f64 / shrink_ratio) as u32,
-        (size.1 as f64 / shrink_ratio) as u32,
-    );
-
-    let new_length = new_size.0 * new_size.1 * 4;
-    let mut new = vec![0; new_length as usize];
-    for y in 0..new_size.1 {
-        for x in 0..new_size.0 {
-            let orig_x = (x as f64 * shrink_ratio) as u32;
-            let orig_y = (y as f64 * shrink_ratio) as u32;
-            let orig_index = orig_y * size.0 * 4 + orig_x * 4;
-            let index = y * new_size.0 * 4 + x * 4;
-            new[index as usize] = vec[orig_index as usize];
-            new[(index + 1) as usize] = vec[(orig_index + 1) as usize];
-            new[(index + 2) as usize] = vec[(orig_index + 2) as usize];
-            new[(index + 3) as usize] = vec[(orig_index + 3) as usize];
-        }
-    }
-
-    (new, new_size.0, new_size.1)
-}
-
 // TODO: Use encoder channel order option when available. Not yet as of 0.2.0
 fn reorder(vec: &mut Vec<u8>) {
     assert_eq!(vec.len() % 4, 0);
@@ -124,12 +92,21 @@ impl IThumbnailProvider for ThumbnailProvider {
             buffer
         };
 
-        log::trace!("data");
         let (info, decoded, _) = decode_memory(&data)?;
 
-        log::trace!("decoded");
+        let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, decoded)
+            .expect("Failed to consume the decoded RGBA buffer");
 
-        let (mut output, new_xsize, new_ysize) = fit(&decoded, (info.xsize, info.ysize), cx);
+        let shrink_ratio = max(info.xsize, info.ysize) as f64 / cx as f64;
+        let new_size = (
+            (info.xsize as f64 / shrink_ratio) as u32,
+            (info.ysize as f64 / shrink_ratio) as u32,
+        );
+
+        // Somehow the resized image gets glitches https://github.com/image-rs/image/issues/1402
+        let resized =
+            image::imageops::resize(&rgba, new_size.0, new_size.1, image::imageops::Lanczos3);
+        let mut output = resized.to_vec();
         reorder(&mut output);
 
         // Create a bitmap from the data and return it.
@@ -137,8 +114,8 @@ impl IThumbnailProvider for ThumbnailProvider {
         // We'll store the bitmap handle in the struct so that it can destroy the data when it's not needed anymore.
         let bitmap = unsafe {
             CreateBitmap(
-                new_xsize as i32,
-                new_ysize as i32,
+                new_size.0 as i32,
+                new_size.1 as i32,
                 1,
                 32,
                 output.as_ptr() as *const _,
