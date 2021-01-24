@@ -14,5 +14,5 @@ winapi = { version = "0.3.9", features = ["minwindef", "winerror", "wtypes", "ob
 intercom = { git = "https://github.com/Rantanen/intercom", rev = "4633ab2e367386375a155420652e8816b69cf924" }
 simple-logging = "2.0"
 log = "0.4"
-kagamijxl = { version = "0.1.0", path = "../jxl-rs/kagamijxl", git = "https://github.com/saschanaz/jxl-rs/", rev = "e22f36f5193f09c18678c762f3835c1e1b6d84f1" }
+kagamijxl = { version = "0.1.0", path = "../jxl-rs/kagamijxl" }
 image = { version = "0.23.12" }

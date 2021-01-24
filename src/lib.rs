@@ -99,10 +99,15 @@ impl IThumbnailProvider for ThumbnailProvider {
             buffer
         };
 
-        let (info, decoded, _) = decode_memory(&data)?;
+        let (info, rgba) = {
+            let mut result = decode_memory(&data)?;
+            let info = result.basic_info;
+            let data = result.frames.remove(0).data;
 
-        let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, decoded)
-            .expect("Failed to consume the decoded RGBA buffer");
+            let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, data)
+                .expect("Failed to consume the decoded RGBA buffer");
+            (info, rgba)
+        };
 
         let shrink_ratio = max(info.xsize, info.ysize) as f64 / cx as f64;
         let new_size = (

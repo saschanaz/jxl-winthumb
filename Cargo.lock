@@ -422,7 +422,6 @@ dependencies = [
 [[package]]
 name = "kagamijxl"
 version = "0.1.0"
-source = "git+https://github.com/saschanaz/jxl-rs/?rev=e22f36f5193f09c18678c762f3835c1e1b6d84f1#e22f36f5193f09c18678c762f3835c1e1b6d84f1"
 dependencies = [
  "libjxl-sys",
 ]
@@ -447,16 +446,14 @@ checksum = "1482821306169ec4d07f6aca392a4681f66c75c9918aa49641a2595db64053cb"
 
 [[package]]
 name = "libjxl-src"
-version = "0.2.5"
-source = "git+https://github.com/saschanaz/jxl-rs/?rev=e22f36f5193f09c18678c762f3835c1e1b6d84f1#e22f36f5193f09c18678c762f3835c1e1b6d84f1"
+version = "0.2.6"
 dependencies = [
  "cmake",
 ]
 
 [[package]]
 name = "libjxl-sys"
-version = "0.2.1"
-source = "git+https://github.com/saschanaz/jxl-rs/?rev=e22f36f5193f09c18678c762f3835c1e1b6d84f1#e22f36f5193f09c18678c762f3835c1e1b6d84f1"
+version = "0.2.2"
 dependencies = [
  "bindgen",
  "libjxl-src",
