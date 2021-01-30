@@ -14,5 +14,6 @@ winapi = { version = "0.3.9", features = ["minwindef", "winerror", "wtypes", "ob
 intercom = { git = "https://github.com/Rantanen/intercom", rev = "4633ab2e367386375a155420652e8816b69cf924" }
 simple-logging = "2.0"
 log = "0.4"
-kagamijxl = { version = "0.1.0", path = "../jxl-rs/kagamijxl" }
-image = { version = "0.23.12" }
+kagamijxl = { version = "0.2.0", path = "../jxl-rs/kagamijxl" }
+# Use git until a new release, for https://github.com/image-rs/image/issues/1402
+image = { git = "https://github.com/image-rs/image.git", rev = "6d55953830d5e70fceda8abb442f92cbf10d9522" }

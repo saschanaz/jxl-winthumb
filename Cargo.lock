@@ -337,8 +337,7 @@ checksum = "3c1ad908cc71012b7bea4d0c53ba96a8cba9962f048fa68d143376143d863b7a"
 [[package]]
 name = "image"
 version = "0.23.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ce04077ead78e39ae8610ad26216aed811996b043d47beed5090db674f9e9b5"
+source = "git+https://github.com/image-rs/image.git?rev=6d55953830d5e70fceda8abb442f92cbf10d9522#6d55953830d5e70fceda8abb442f92cbf10d9522"
 dependencies = [
  "bytemuck",
  "byteorder",
@@ -421,7 +420,7 @@ dependencies = [
 
 [[package]]
 name = "kagamijxl"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "libjxl-sys",
 ]
@@ -446,14 +445,14 @@ checksum = "1482821306169ec4d07f6aca392a4681f66c75c9918aa49641a2595db64053cb"
 
 [[package]]
 name = "libjxl-src"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "cmake",
 ]
 
 [[package]]
 name = "libjxl-sys"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "bindgen",
  "libjxl-src",
