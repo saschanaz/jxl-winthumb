@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 winapi = { version = "0.3.9", features = ["minwindef", "winerror", "wtypes", "objidlbase"] }
-intercom = { git = "https://github.com/Rantanen/intercom", rev = "c4b54339a9d4147d479f4d019c7b1d60151175fa" }
+intercom = { git = "https://github.com/Rantanen/intercom", rev = "3a68a2ce792e829e77a2a176a238329dbc3033d9" }
 simple-logging = "2.0"
 log = "0.4"
 kagamijxl = { version = "0.2.1", path = "../jxl-rs/kagamijxl" }

@@ -359,7 +359,7 @@ dependencies = [
 [[package]]
 name = "intercom"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=c4b54339a9d4147d479f4d019c7b1d60151175fa#c4b54339a9d4147d479f4d019c7b1d60151175fa"
+source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
 dependencies = [
  "failure",
  "intercom-attributes",
@@ -370,7 +370,7 @@ dependencies = [
 [[package]]
 name = "intercom-attributes"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=c4b54339a9d4147d479f4d019c7b1d60151175fa#c4b54339a9d4147d479f4d019c7b1d60151175fa"
+source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
 dependencies = [
  "intercom-common",
  "quote",
@@ -380,7 +380,7 @@ dependencies = [
 [[package]]
 name = "intercom-common"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=c4b54339a9d4147d479f4d019c7b1d60151175fa#c4b54339a9d4147d479f4d019c7b1d60151175fa"
+source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
 dependencies = [
  "failure",
  "indexmap",
@@ -717,9 +717,9 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "syn"
-version = "1.0.57"
+version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4211ce9909eb971f111059df92c45640aad50a619cf55cd76476be803c4c68e6"
+checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
 dependencies = [
  "proc-macro2",
  "quote",
