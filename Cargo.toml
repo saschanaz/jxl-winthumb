@@ -11,9 +11,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 winapi = { version = "0.3.9", features = ["minwindef", "winerror", "wtypes", "objidlbase"] }
-intercom = { git = "https://github.com/Rantanen/intercom", rev = "4633ab2e367386375a155420652e8816b69cf924" }
+intercom = { git = "https://github.com/Rantanen/intercom", rev = "c4b54339a9d4147d479f4d019c7b1d60151175fa" }
 simple-logging = "2.0"
 log = "0.4"
-kagamijxl = { version = "0.2.0", path = "../jxl-rs/kagamijxl" }
+kagamijxl = { version = "0.2.1", path = "../jxl-rs/kagamijxl" }
 # Use git until a new release, for https://github.com/image-rs/image/issues/1402
 image = { git = "https://github.com/image-rs/image.git", rev = "6d55953830d5e70fceda8abb442f92cbf10d9522" }
