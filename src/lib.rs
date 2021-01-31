@@ -1,7 +1,7 @@
 #![crate_type = "dylib"]
 
 use intercom::prelude::*;
-use kagamijxl::decode_memory;
+use kagamijxl::Decoder;
 use std::{cmp::max, ffi::c_void};
 use winapi::um::{
     objidlbase::STATSTG,
@@ -100,11 +100,14 @@ impl IThumbnailProvider for ThumbnailProvider {
         };
 
         let (info, rgba) = {
-            let mut result = decode_memory(&data)?;
-            let info = result.basic_info;
-            let data = result.frames.remove(0).data;
+            let mut decoder = Decoder::new();
+            decoder.max_frames = Some(1);
 
-            let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, data)
+            let mut result = decoder.decode(&data)?;
+            let info = result.basic_info;
+            let buf = result.frames.remove(0).data;
+
+            let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, buf)
                 .expect("Failed to consume the decoded RGBA buffer");
             (info, rgba)
         };
@@ -115,9 +118,8 @@ impl IThumbnailProvider for ThumbnailProvider {
             (info.ysize as f64 / shrink_ratio) as u32,
         );
 
-        // Somehow the resized image gets glitches https://github.com/image-rs/image/issues/1402
         let resized =
-            image::imageops::resize(&rgba, new_size.0, new_size.1, image::imageops::Lanczos3);
+            image::imageops::resize(&rgba, new_size.0, new_size.1, image::imageops::Triangle);
         let mut output = resized.to_vec();
         reorder(&mut output);
 
