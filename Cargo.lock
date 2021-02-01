@@ -174,6 +174,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
+name = "const-sha1"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb58b6451e8c2a812ad979ed1d83378caa5e927eef2622017a45f251457c2c9d"
+
+[[package]]
 name = "const_fn"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -359,7 +365,7 @@ dependencies = [
 [[package]]
 name = "intercom"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
+source = "git+https://github.com/Rantanen/intercom?rev=41518eef1dd6984c130d6daf2218b9fb6e47c3bb#41518eef1dd6984c130d6daf2218b9fb6e47c3bb"
 dependencies = [
  "failure",
  "intercom-attributes",
@@ -370,7 +376,7 @@ dependencies = [
 [[package]]
 name = "intercom-attributes"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
+source = "git+https://github.com/Rantanen/intercom?rev=41518eef1dd6984c130d6daf2218b9fb6e47c3bb#41518eef1dd6984c130d6daf2218b9fb6e47c3bb"
 dependencies = [
  "intercom-common",
  "quote",
@@ -380,7 +386,7 @@ dependencies = [
 [[package]]
 name = "intercom-common"
 version = "0.3.0"
-source = "git+https://github.com/Rantanen/intercom?rev=3a68a2ce792e829e77a2a176a238329dbc3033d9#3a68a2ce792e829e77a2a176a238329dbc3033d9"
+source = "git+https://github.com/Rantanen/intercom?rev=41518eef1dd6984c130d6daf2218b9fb6e47c3bb#41518eef1dd6984c130d6daf2218b9fb6e47c3bb"
 dependencies = [
  "failure",
  "indexmap",
@@ -389,6 +395,12 @@ dependencies = [
  "sha1",
  "syn",
 ]
+
+[[package]]
+name = "itoa"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 
 [[package]]
 name = "jpeg-decoder"
@@ -409,6 +421,8 @@ dependencies = [
  "log",
  "simple-logging",
  "winapi",
+ "windows",
+ "winreg",
 ]
 
 [[package]]
@@ -675,6 +689,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
+name = "ryu"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
+
+[[package]]
 name = "scoped_threadpool"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -685,6 +705,37 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "serde"
+version = "1.0.123"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.123"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9391c295d64fc0abb2c556bad848f33cb8296276b1ad2677d1ae1ace4f258f31"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.61"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fceb2595057b6891a4ee808f70054bd2d12f0e97f1cbb78689b59f676df325a"
+dependencies = [
+ "itoa",
+ "ryu",
+ "serde",
+]
 
 [[package]]
 name = "sha1"
@@ -708,6 +759,12 @@ dependencies = [
  "log",
  "thread-id",
 ]
+
+[[package]]
+name = "squote"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fccf17fd09e2455ea796d2ad267b64fa2c5cbd8701b2a93b555d2aa73449f7d"
 
 [[package]]
 name = "strsim"
@@ -856,3 +913,88 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "windows"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8577253c781c3aa634017840854139a65a51de658fb61577e5c91e995ebdd18e"
+dependencies = [
+ "const-sha1",
+ "windows_gen",
+ "windows_macros",
+ "windows_winmd",
+]
+
+[[package]]
+name = "windows_gen"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de23e2765bf82678467efef4ccdeb150a2456b2b01688fbd7c86292c1c931ee7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rayon",
+ "sha1",
+ "squote",
+ "syn",
+ "windows_gen_macros",
+ "windows_winmd",
+]
+
+[[package]]
+name = "windows_gen_macros"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "878ecff0c53decca3851547869b5473081198cfe97405b14412be9283a05ae34"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "windows_macros"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaedcc12658411370a43f9c194c40ed4bae0047c39e48ebf67e92d241a97f0c7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rayon",
+ "squote",
+ "syn",
+ "windows_gen",
+ "windows_winmd",
+]
+
+[[package]]
+name = "windows_winmd"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40a0769bcad04692eb69e92ff93ce49c89ca5aeda188e98f5cc9b8502b41d6c0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "windows_winmd_macros",
+]
+
+[[package]]
+name = "windows_winmd_macros"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f67ec9020d1bbfeaa8847ababe33b8dc190d683624cd72a48a4a117de50d6559"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "winreg"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d107f8c6e916235c4c01cabb3e8acf7bea8ef6a63ca2e7fa0527c049badfc48c"
+dependencies = [
+ "winapi",
+]

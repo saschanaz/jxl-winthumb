@@ -15,29 +15,29 @@ use winapi::{
     um::objidlbase::LPSTREAM,
 };
 
-#[cfg(not(debug_assertions))]
-com_library! {
-    class ThumbnailProvider
-}
+mod registry;
 
-#[cfg(debug_assertions)]
 com_library! {
     on_load=on_load,
+    on_register=registry::register_provider,
+    on_unregister=registry::unregister_provider,
     class ThumbnailProvider
 }
 
 /// Called when the DLL is loaded.
 ///
 /// Sets up logging to the Cargo.toml directory for debug purposes.
-#[cfg(debug_assertions)]
 fn on_load() {
-    // Set up logging to the project directory.
-    use log::LevelFilter;
-    simple_logging::log_to_file(
-        &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
-        LevelFilter::Trace,
-    )
-    .unwrap();
+    #[cfg(debug_assertions)]
+    {
+        // Set up logging to the project directory.
+        use log::LevelFilter;
+        simple_logging::log_to_file(
+            &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
+            LevelFilter::Trace,
+        )
+        .unwrap();
+    }
 }
 
 #[com_class(
