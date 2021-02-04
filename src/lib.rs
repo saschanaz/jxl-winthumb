@@ -86,9 +86,13 @@ impl IThumbnailProvider for ThumbnailProvider {
             let mut decoder = Decoder::new();
             decoder.max_frames = Some(1);
 
+            log::trace!("Decoding started");
+
             let mut result = decoder.decode_buffer(reader)?;
             let info = result.basic_info;
             let buf = result.frames.remove(0).data;
+
+            log::trace!("Decoding finished");
 
             let rgba = image::RgbaImage::from_raw(info.xsize, info.ysize, buf)
                 .expect("Failed to consume the decoded RGBA buffer");
@@ -101,10 +105,14 @@ impl IThumbnailProvider for ThumbnailProvider {
             (info.ysize as f64 / shrink_ratio) as u32,
         );
 
+        log::trace!("Resizing/reordering started");
+
         let resized =
             image::imageops::resize(&rgba, new_size.0, new_size.1, image::imageops::Triangle);
         let mut output = resized.to_vec();
         reorder(&mut output);
+
+        log::trace!("Resizing/reordering finished");
 
         // Create a bitmap from the data and return it.
         //
