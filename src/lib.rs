@@ -3,10 +3,7 @@
 use intercom::{prelude::*, raw::HRESULT};
 use kagamijxl::Decoder;
 use std::{cmp::max, io::BufReader};
-use winapi::um::{
-    objidlbase::STATSTG,
-    wingdi::{CreateBitmap, DeleteObject},
-};
+use winapi::um::wingdi::{CreateBitmap, DeleteObject};
 use winapi::{
     shared::{minwindef::DWORD, windef::HBITMAP, winerror::WINCODEC_ERR_WRONGSTATE},
     um::objidlbase::LPSTREAM,
@@ -152,13 +149,6 @@ impl Drop for ThumbnailProvider {
 #[allow(non_camel_case_types)]
 #[repr(transparent)]
 struct ComHBITMAP(HBITMAP);
-
-#[derive(
-    intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
-)]
-#[allow(non_camel_case_types)]
-#[repr(transparent)]
-struct ComSTATSTG(STATSTG);
 
 #[derive(
     intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
