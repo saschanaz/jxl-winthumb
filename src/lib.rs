@@ -1,21 +1,20 @@
 #![crate_type = "dylib"]
 
-use intercom::prelude::*;
+use intercom::{prelude::*, raw::HRESULT};
 use kagamijxl::Decoder;
-use std::{cmp::max, ffi::c_void};
+use std::{cmp::max, io::BufReader};
 use winapi::um::{
     objidlbase::STATSTG,
     wingdi::{CreateBitmap, DeleteObject},
 };
 use winapi::{
-    shared::{
-        minwindef::DWORD, windef::HBITMAP, winerror::WINCODEC_ERR_WRONGSTATE,
-        wtypes::STATFLAG_NONAME,
-    },
+    shared::{minwindef::DWORD, windef::HBITMAP, winerror::WINCODEC_ERR_WRONGSTATE},
     um::objidlbase::LPSTREAM,
 };
 
 mod registry;
+mod winstream;
+use winstream::WinStream;
 
 com_library! {
     on_load=on_load,
@@ -62,7 +61,7 @@ impl IInitializeWithStream for ThumbnailProvider {
     }
 }
 
-// TODO: Use encoder channel order option when available. Not yet as of 0.2.0
+// TODO: Use encoder channel order option when available. Not yet as of 0.3.0
 fn reorder(vec: &mut Vec<u8>) {
     assert_eq!(vec.len() % 4, 0);
     for i in 0..vec.len() / 4 {
@@ -77,33 +76,17 @@ fn reorder(vec: &mut Vec<u8>) {
 impl IThumbnailProvider for ThumbnailProvider {
     fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, WTS_ALPHATYPE)> {
         if self.stream.is_none() {
-            return Err(intercom::error::raw::HRESULT::new(WINCODEC_ERR_WRONGSTATE).into());
+            return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE).into());
         }
 
-        let stream = unsafe { self.stream.unwrap().as_mut().unwrap() };
-
-        let data = unsafe {
-            let mut stat = std::mem::zeroed();
-
-            stream.Stat(&mut stat, STATFLAG_NONAME);
-
-            let stream_size = *stat.cbSize.QuadPart() as u32;
-
-            let mut buffer: Vec<u8> = Vec::new();
-            buffer.resize(stream_size as usize, 0);
-            let mut bytes_read = 0u32;
-            while bytes_read < stream_size {
-                let offset = buffer.as_mut_ptr().offset(bytes_read as isize);
-                stream.Read(offset as *mut c_void, stream_size, &mut bytes_read);
-            }
-            buffer
-        };
+        let stream = WinStream::new(self.stream.unwrap());
+        let reader = BufReader::new(stream);
 
         let (info, rgba) = {
             let mut decoder = Decoder::new();
             decoder.max_frames = Some(1);
 
-            let mut result = decoder.decode(&data)?;
+            let mut result = decoder.decode_buffer(reader)?;
             let info = result.basic_info;
             let buf = result.frames.remove(0).data;
 
