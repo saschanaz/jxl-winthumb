@@ -40,6 +40,9 @@ jobs:
       - name: Set LIBCLANG_PATH
         run: echo "LIBCLANG_PATH=$env:LD_LIBRARY_PATH" >> $env:GITHUB_ENV
 
+      - name: Check LIBCLANG_PATH
+        run: echo $env:LIBCLANG_PATH
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
