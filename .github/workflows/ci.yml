@@ -38,7 +38,7 @@ jobs:
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Set LIBCLANG_PATH
-        run: echo $env:LD_LIBRARY_PATH | Out-File -FilePath $env:LIBCLANG_PATH -Encoding utf8 -Append
+        run: echo "LIBCLANG_PATH=$env:LD_LIBRARY_PATH" >> $env:GITHUB_ENV
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
