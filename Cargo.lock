@@ -421,6 +421,8 @@ dependencies = [
 [[package]]
 name = "kagamijxl"
 version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02fbe00c1a22a69c6c7a39aedc6b3a2b4da7c293cff45cc2c4792c66946b576b"
 dependencies = [
  "libjxl-sys",
 ]
@@ -446,6 +448,8 @@ checksum = "7ccac4b00700875e6a07c6cde370d44d32fa01c5a65cdd2fca6858c479d28bb3"
 [[package]]
 name = "libjxl-src"
 version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "306bed00d1787c6376483cc92c4886c89052f3e100427d59cf2f9051a9fc0c80"
 dependencies = [
  "cmake",
 ]
@@ -453,6 +457,8 @@ dependencies = [
 [[package]]
 name = "libjxl-sys"
 version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd19303e0470e4945b9ca93ef7a0d0f33c177133206c12abe1437c83a1a19053"
 dependencies = [
  "bindgen",
  "libjxl-src",
