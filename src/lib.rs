@@ -3,15 +3,19 @@
 use intercom::{prelude::*, raw::HRESULT};
 use kagamijxl::Decoder;
 use std::{cmp::max, io::BufReader};
-use winapi::um::wingdi::{CreateBitmap, DeleteObject};
-use winapi::{
-    shared::{minwindef::DWORD, windef::HBITMAP, winerror::WINCODEC_ERR_WRONGSTATE},
-    um::objidlbase::LPSTREAM,
-};
 
 mod registry;
 mod winstream;
 use winstream::WinStream;
+
+mod bindings;
+
+use bindings::{
+    windows::win32::gdi::{CreateBitmap, DeleteObject, HBITMAP},
+    windows::win32::shell::WTS_ALPHATYPE,
+    windows::win32::structured_storage::IStream,
+    windows::win32::system_services::WINCODEC_ERR_WRONGSTATE,
+};
 
 com_library! {
     on_load=on_load,
@@ -44,17 +48,16 @@ fn on_load() {
 )]
 #[derive(Default)]
 struct ThumbnailProvider {
-    stream: Option<LPSTREAM>,
+    stream: Option<WinStream>,
     bitmap: Option<HBITMAP>,
 }
 
 impl IInitializeWithStream for ThumbnailProvider {
-    fn initialize(&mut self, stream: ComLPSTREAM, _mode: DWORD) -> ComResult<()> {
-        unsafe {
-            stream.0.as_mut().unwrap().AddRef();
-            self.stream = Some(stream.0);
-            Ok(())
-        }
+    fn initialize(&mut self, stream: ComIStream, _mode: u32) -> ComResult<()> {
+        self.stream = Some(WinStream::from(stream.0.clone()));
+        std::mem::forget(stream); // Prevent dropping, will happen later
+
+        Ok(())
     }
 }
 
@@ -71,12 +74,12 @@ fn reorder(vec: &mut Vec<u8>) {
 }
 
 impl IThumbnailProvider for ThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, WTS_ALPHATYPE)> {
+    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, ComWTS_ALPHATYPE)> {
         if self.stream.is_none() {
             return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE).into());
         }
 
-        let stream = WinStream::new(self.stream.unwrap());
+        let stream = self.stream.take().unwrap();
         let reader = BufReader::new(stream);
 
         let (info, rgba) = {
@@ -125,20 +128,15 @@ impl IThumbnailProvider for ThumbnailProvider {
         };
         self.bitmap = Some(bitmap);
 
-        Ok((ComHBITMAP(bitmap), 2))
+        Ok((ComHBITMAP(bitmap), ComWTS_ALPHATYPE(WTS_ALPHATYPE::WTSAT_ARGB)))
     }
 }
 
 impl Drop for ThumbnailProvider {
     fn drop(&mut self) {
-        if let Some(stream) = &self.stream {
-            unsafe {
-                stream.as_mut().unwrap().Release();
-            }
-        }
         // Delete the bitmap once it's not needed anymore.
         if let Some(bitmap) = self.bitmap {
-            unsafe { DeleteObject(bitmap as _) };
+            unsafe { DeleteObject(bitmap.0) };
         }
     }
 }
@@ -153,21 +151,24 @@ struct ComHBITMAP(HBITMAP);
 #[derive(
     intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
 )]
+#[repr(transparent)]
+struct ComIStream(IStream);
+
+#[derive(
+    intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
+)]
 #[allow(non_camel_case_types)]
 #[repr(transparent)]
-struct ComLPSTREAM(LPSTREAM);
-
-#[allow(non_camel_case_types)]
-type WTS_ALPHATYPE = u32;
+struct ComWTS_ALPHATYPE(WTS_ALPHATYPE);
 
 // COM interface definitions.
 
 #[com_interface(com_iid = "e357fccd-a995-4576-b01f-234630154e96")]
 trait IThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, WTS_ALPHATYPE)>;
+    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, ComWTS_ALPHATYPE)>;
 }
 
 #[com_interface(com_iid = "b824b49d-22ac-4161-ac8a-9916e8fa3f7f")]
 trait IInitializeWithStream {
-    fn initialize(&mut self, stream: ComLPSTREAM, mode: DWORD) -> ComResult<()>;
+    fn initialize(&mut self, stream: ComIStream, mode: u32) -> ComResult<()>;
 }
