@@ -38,13 +38,13 @@ jobs:
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Set LIBCLANG_PATH
-        run: echo "LIBCLANG_PATH=$($env:LD_LIBRARY_PATH -replace 'lib','bin')" >> $env:GITHUB_ENV
+        run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
 
       - name: Check LIBCLANG_PATH
         run: echo $env:LIBCLANG_PATH
 
       - name: What are inside it
-        run: gcm clang
+        run: ls $env:LIBCLANG_PATH
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
