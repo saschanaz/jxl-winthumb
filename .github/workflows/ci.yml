@@ -35,10 +35,10 @@ jobs:
           directory: ${{ runner.temp }}/llvm
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
-      - name: Run cargo build
+      - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
-          command: build
+          command: test
 
   lints:
     name: Lints
