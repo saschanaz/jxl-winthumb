@@ -44,7 +44,7 @@ jobs:
         run: echo $env:LIBCLANG_PATH
 
       - name: What are inside it
-        run: ls $env:LIBCLANG_PATH
+        run: gcm clang
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
