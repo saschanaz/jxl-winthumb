@@ -128,7 +128,10 @@ impl IThumbnailProvider for ThumbnailProvider {
         };
         self.bitmap = Some(bitmap);
 
-        Ok((ComHBITMAP(bitmap), ComWTS_ALPHATYPE(WTS_ALPHATYPE::WTSAT_ARGB)))
+        Ok((
+            ComHBITMAP(bitmap),
+            ComWTS_ALPHATYPE(WTS_ALPHATYPE::WTSAT_ARGB),
+        ))
     }
 }
 
