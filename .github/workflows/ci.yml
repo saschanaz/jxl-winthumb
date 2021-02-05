@@ -37,6 +37,12 @@ jobs:
           directory: ${{ runner.temp }}/llvm
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
+      # See:
+      # https://github.com/rust-lang/rust-bindgen/issues/1797
+      # https://github.com/KyleMayes/clang-sys/issues/121
+      - name: Set LIBCLANG_PATH
+        run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
