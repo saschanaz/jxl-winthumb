@@ -37,6 +37,9 @@ jobs:
           directory: ${{ runner.temp }}/llvm
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
+      - name: Temp
+        run: echo $LIBCLANG_PATH
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
