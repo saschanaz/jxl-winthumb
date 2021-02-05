@@ -43,10 +43,10 @@ jobs:
       - name: Set LIBCLANG_PATH
         run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
 
-      - name: Run cargo test
+      - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: build
 
   lints:
     name: Lints
