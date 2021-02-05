@@ -43,6 +43,9 @@ jobs:
       - name: Check LIBCLANG_PATH
         run: echo $env:LIBCLANG_PATH
 
+      - name: What are inside it
+        run: ls $env:LIBCLANG_PATH
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
