@@ -1,6 +1,6 @@
 [package]
 name = "jxl-winthumb"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2018"
 
@@ -11,11 +11,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 intercom = { git = "https://github.com/Rantanen/intercom", rev = "41518eef1dd6984c130d6daf2218b9fb6e47c3bb" }
-simple-logging = "2.0"
-log = "0.4"
-kagamijxl = "0.2.2"
-# Use git until a new release, for https://github.com/image-rs/image/issues/1402
-image = { git = "https://github.com/image-rs/image.git", rev = "6d55953830d5e70fceda8abb442f92cbf10d9522" }
+simple-logging = "2.0.2"
+log = "0.4.14"
+kagamijxl = "0.2.3"
+image = "0.23.14"
 winreg = "0.8.0"
 windows = "0.3.1"
 
