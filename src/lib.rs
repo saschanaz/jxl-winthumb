@@ -11,10 +11,10 @@ use winstream::WinStream;
 mod bindings;
 
 use bindings::{
-    windows::win32::gdi::{CreateBitmap, DeleteObject, HBITMAP},
-    windows::win32::shell::WTS_ALPHATYPE,
-    windows::win32::structured_storage::IStream,
-    windows::win32::system_services::WINCODEC_ERR_WRONGSTATE,
+    Windows::Win32::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
+    Windows::Win32::Shell::WTS_ALPHATYPE,
+    Windows::Win32::StructuredStorage::IStream,
+    Windows::Win32::SystemServices::WINCODEC_ERR_WRONGSTATE,
 };
 
 com_library! {
@@ -76,7 +76,7 @@ fn reorder(vec: &mut Vec<u8>) {
 impl IThumbnailProvider for ThumbnailProvider {
     fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, ComWTS_ALPHATYPE)> {
         if self.stream.is_none() {
-            return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE).into());
+            return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE.0 as i32).into());
         }
 
         let stream = self.stream.take().unwrap();
@@ -139,7 +139,7 @@ impl Drop for ThumbnailProvider {
     fn drop(&mut self) {
         // Delete the bitmap once it's not needed anymore.
         if let Some(bitmap) = self.bitmap {
-            unsafe { DeleteObject(bitmap.0) };
+            unsafe { DeleteObject(bitmap) };
         }
     }
 }

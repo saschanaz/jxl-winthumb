@@ -1,8 +1,8 @@
 fn main() {
     windows::build!(
-      windows::win32::shell::{SHChangeNotify, WTS_ALPHATYPE},
-      windows::win32::gdi::{CreateBitmap, DeleteObject, HBITMAP},
-      windows::win32::structured_storage::{ISequentialStream, IStream},
-      windows::win32::system_services::WINCODEC_ERR_WRONGSTATE,
+      Windows::Win32::Shell::{SHChangeNotify, WTS_ALPHATYPE},
+      Windows::Win32::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
+      Windows::Win32::StructuredStorage::{ISequentialStream, IStream},
+      Windows::Win32::SystemServices::WINCODEC_ERR_WRONGSTATE,
     );
 }

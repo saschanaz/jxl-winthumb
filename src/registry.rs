@@ -3,7 +3,7 @@ use std::ptr::null_mut;
 use winreg::enums::*;
 use winreg::RegKey;
 
-use crate::bindings::windows::win32::shell::SHChangeNotify;
+use crate::bindings::Windows::Win32::Shell::{SHCNE_ID, SHChangeNotify, SHCNF_FLAGS};
 
 const EXT: &str = ".jxl";
 
@@ -19,8 +19,8 @@ const CLSID: &str = "{DF52DEB1-9D07-4520-B606-97C6ECB069A2}";
 fn shell_change_notify() {
     unsafe {
         SHChangeNotify(
-            0x08000000, /* SHCNE_ASSOCCHANGED */
-            0,          /* SHCNF_IDLIST */
+            SHCNE_ID::SHCNE_ASSOCCHANGED,
+            SHCNF_FLAGS::SHCNF_IDLIST,
             null_mut(),
             null_mut(),
         )
