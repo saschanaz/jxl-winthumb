@@ -3,7 +3,7 @@ use std::ptr::null_mut;
 use winreg::enums::*;
 use winreg::RegKey;
 
-use crate::bindings::Windows::Win32::Shell::{SHCNE_ID, SHChangeNotify, SHCNF_FLAGS};
+use crate::bindings::Windows::Win32::Shell::{SHChangeNotify, SHCNE_ID, SHCNF_FLAGS};
 
 const EXT: &str = ".jxl";
 
