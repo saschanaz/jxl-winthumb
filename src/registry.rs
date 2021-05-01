@@ -56,8 +56,8 @@ pub fn register_provider() -> Result<(), intercom::raw::HRESULT> {
 
 pub fn unregister_provider() -> Result<(), intercom::raw::HRESULT> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-    if let Some(key) = hkcr.open_subkey(EXT).ok() {
-        if let Some(shell_ex) = key.open_subkey("ShellEx").ok() {
+    if let Ok(key) = hkcr.open_subkey(EXT) {
+        if let Ok(shell_ex) = key.open_subkey("ShellEx") {
             if let Some(itp_clsid) = shell_ex
                 .open_subkey_with_flags(ITHUMBNAILPROVIDER_CLSID, KEY_READ | KEY_WRITE)
                 .ok()
