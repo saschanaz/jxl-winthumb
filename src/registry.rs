@@ -58,12 +58,11 @@ pub fn unregister_provider() -> Result<(), intercom::raw::HRESULT> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     if let Ok(key) = hkcr.open_subkey(EXT) {
         if let Ok(shell_ex) = key.open_subkey("ShellEx") {
-            if let Some(itp_clsid) = shell_ex
+            if let Ok(itp_clsid) = shell_ex
                 .open_subkey_with_flags(ITHUMBNAILPROVIDER_CLSID, KEY_READ | KEY_WRITE)
-                .ok()
             {
                 let rv: Result<String, _> = itp_clsid.get_value("");
-                if let Some(val) = rv.ok() {
+                if let Ok(val) = rv {
                     if val == CLSID {
                         itp_clsid
                             .delete_value("")

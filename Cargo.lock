@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "image",
  "intercom",

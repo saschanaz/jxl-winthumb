@@ -99,7 +99,10 @@ impl IThumbnailProvider for ThumbnailProvider {
             (info, rgba)
         };
 
-        let shrink_ratio = max(info.xsize, info.ysize) as f64 / cx as f64;
+        let mut shrink_ratio = max(info.xsize, info.ysize) as f64 / cx as f64;
+        if shrink_ratio < 1.0 {
+            shrink_ratio = 1.0; // cmp::min does not support floats
+        }
         let new_size = (
             (info.xsize as f64 / shrink_ratio) as u32,
             (info.ysize as f64 / shrink_ratio) as u32,
