@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "image",
  "intercom",
@@ -415,9 +415,9 @@ dependencies = [
 
 [[package]]
 name = "kagamijxl"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73bc2d7ed3d355ee7ba1464becf046fec96f52fbc8f73a16fd7ab920052e6c5a"
+checksum = "3dc19dc2ca2325b5f2736908a194c2f16c9b117ee198e1b9447f70c34c452ef6"
 dependencies = [
  "libjxl-sys",
 ]
