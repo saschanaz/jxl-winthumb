@@ -104,8 +104,8 @@ impl IThumbnailProvider for ThumbnailProvider {
             shrink_ratio = 1.0; // cmp::min does not support floats
         }
         let new_size = (
-            (info.xsize as f64 / shrink_ratio) as u32,
-            (info.ysize as f64 / shrink_ratio) as u32,
+            (info.xsize as f64 / shrink_ratio).round() as u32,
+            (info.ysize as f64 / shrink_ratio).round() as u32,
         );
 
         log::trace!("Resizing/reordering started");
