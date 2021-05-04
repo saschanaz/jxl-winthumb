@@ -1,6 +1,6 @@
 [package]
 name = "jxl-winthumb"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2018"
 
@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 intercom = { git = "https://github.com/Rantanen/intercom", rev = "41518eef1dd6984c130d6daf2218b9fb6e47c3bb" }
 simple-logging = "2.0.2"
 log = "0.4.14"
-kagamijxl = "0.2.7"
+kagamijxl = "0.2.8"
 image = "0.23.14"
 winreg = "0.8.0"
 windows = "0.9.1"
