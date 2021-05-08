@@ -2,6 +2,13 @@
 
 A JPEG XL (*.jxl) thumbnail handler for Windows File Explorer.
 
+## How to install
+
+1. Download the latest dll file from the [releases](https://github.com/saschanaz/jxl-winthumb/releases) page.
+2. Open a terminal window as administrator
+3. Move to your download directory
+4. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
+
 ## Why not Windows Imaging Component?
 
 It was useful before Windows 10 era when Windows Photo Gallery existed, but not anymore as Microsoft now uses its own undocumented way to add system codecs for UWP apps.
