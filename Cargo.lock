@@ -442,9 +442,9 @@ checksum = "18794a8ad5b29321f790b55d93dfba91e125cb1a9edbd4f8e3150acc771c1a5e"
 
 [[package]]
 name = "libjxl-src"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62edc6f5bbdde3a164e67f2aebe943542968e1067d9d8e53bdc6df7e14a71b09"
+checksum = "f3ff51d8b7e54f3ed8316b6ca0b37799499561b6f07afcb56fb7c8e22939bea1"
 dependencies = [
  "cmake",
 ]
