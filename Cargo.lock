@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "image",
  "intercom",
@@ -851,9 +851,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "361f3533a83ee1a28c9be59683f40043db02dbedf6479ce8795657386195c97f"
+checksum = "a43e544233e20425d5a58e9671cf76d6aed9e6f211508c050facb29b188dc10f"
 dependencies = [
  "const-sha1",
  "windows_gen",
@@ -862,18 +862,15 @@ dependencies = [
 
 [[package]]
 name = "windows_gen"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54154dbc515d58723f6b6053c12f1065da7389f733660581b2391bd1af480452"
-dependencies = [
- "syn",
-]
+checksum = "bc6283570a39b3594e31c64a498f48058758cc063eb087d972bb6476ad134a16"
 
 [[package]]
 name = "windows_macros"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f7794c652845dc466cb8dc1b86c08345707c8144bc53e9086430047c7d33b76"
+checksum = "f757e7665f81f33ace9f89b0f0fc3a7c770e24ff4fa1475c6503bb35b4524893"
 dependencies = [
  "syn",
  "windows_gen",

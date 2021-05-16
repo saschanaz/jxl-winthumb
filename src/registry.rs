@@ -3,7 +3,9 @@ use std::ptr::null_mut;
 use winreg::enums::*;
 use winreg::RegKey;
 
-use crate::bindings::Windows::Win32::Shell::{SHChangeNotify, SHCNE_ID, SHCNF_FLAGS};
+use crate::bindings::Windows::Win32::UI::Shell::{
+    SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST,
+};
 
 const EXT: &str = ".jxl";
 
@@ -17,14 +19,7 @@ const ITHUMBNAILPROVIDER_CLSID: &str = "{e357fccd-a995-4576-b01f-234630154e96}";
 const CLSID: &str = "{DF52DEB1-9D07-4520-B606-97C6ECB069A2}";
 
 fn shell_change_notify() {
-    unsafe {
-        SHChangeNotify(
-            SHCNE_ID::SHCNE_ASSOCCHANGED,
-            SHCNF_FLAGS::SHCNF_IDLIST,
-            null_mut(),
-            null_mut(),
-        )
-    };
+    unsafe { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, null_mut(), null_mut()) };
 }
 
 pub fn register_provider() -> Result<(), intercom::raw::HRESULT> {

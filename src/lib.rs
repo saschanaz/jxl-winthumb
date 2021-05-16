@@ -11,10 +11,10 @@ use winstream::WinStream;
 mod bindings;
 
 use bindings::{
-    Windows::Win32::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
-    Windows::Win32::Shell::WTS_ALPHATYPE,
-    Windows::Win32::StructuredStorage::IStream,
-    Windows::Win32::SystemServices::WINCODEC_ERR_WRONGSTATE,
+    Windows::Win32::Graphics::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
+    Windows::Win32::Storage::StructuredStorage::IStream,
+    Windows::Win32::System::SystemServices::WINCODEC_ERR_WRONGSTATE,
+    Windows::Win32::UI::Shell::{WTSAT_ARGB, WTS_ALPHATYPE},
 };
 
 com_library! {
@@ -74,7 +74,7 @@ fn reorder(vec: &mut Vec<u8>) {
 }
 
 impl IThumbnailProvider for ThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, ComWTS_ALPHATYPE)> {
+    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHbitmap, ComWtsAlphatype)> {
         if self.stream.is_none() {
             return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE.0 as i32).into());
         }
@@ -131,10 +131,7 @@ impl IThumbnailProvider for ThumbnailProvider {
         };
         self.bitmap = Some(bitmap);
 
-        Ok((
-            ComHBITMAP(bitmap),
-            ComWTS_ALPHATYPE(WTS_ALPHATYPE::WTSAT_ARGB),
-        ))
+        Ok((ComHbitmap(bitmap), ComWtsAlphatype(WTSAT_ARGB)))
     }
 }
 
@@ -152,7 +149,7 @@ impl Drop for ThumbnailProvider {
 #[derive(intercom::ForeignType, intercom::ExternType, intercom::ExternOutput)]
 #[allow(non_camel_case_types)]
 #[repr(transparent)]
-struct ComHBITMAP(HBITMAP);
+struct ComHbitmap(HBITMAP);
 
 #[derive(
     intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
@@ -165,13 +162,13 @@ struct ComIStream(IStream);
 )]
 #[allow(non_camel_case_types)]
 #[repr(transparent)]
-struct ComWTS_ALPHATYPE(WTS_ALPHATYPE);
+struct ComWtsAlphatype(WTS_ALPHATYPE);
 
 // COM interface definitions.
 
 #[com_interface(com_iid = "e357fccd-a995-4576-b01f-234630154e96")]
 trait IThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHBITMAP, ComWTS_ALPHATYPE)>;
+    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHbitmap, ComWtsAlphatype)>;
 }
 
 #[com_interface(com_iid = "b824b49d-22ac-4161-ac8a-9916e8fa3f7f")]
