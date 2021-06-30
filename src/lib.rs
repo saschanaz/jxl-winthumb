@@ -11,9 +11,9 @@ use winstream::WinStream;
 mod bindings;
 
 use bindings::{
+    Windows::Win32::Foundation::WINCODEC_ERR_WRONGSTATE,
     Windows::Win32::Graphics::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
     Windows::Win32::Storage::StructuredStorage::IStream,
-    Windows::Win32::System::SystemServices::WINCODEC_ERR_WRONGSTATE,
     Windows::Win32::UI::Shell::{WTSAT_ARGB, WTS_ALPHATYPE},
 };
 
