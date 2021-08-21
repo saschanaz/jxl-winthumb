@@ -1,8 +1,8 @@
 #![crate_type = "dylib"]
 
-use intercom::{prelude::*, raw::HRESULT};
 use kagamijxl::Decoder;
 use std::{cmp::max, io::BufReader};
+use windows::implement;
 
 mod registry;
 mod winstream;
@@ -10,55 +10,25 @@ use winstream::WinStream;
 
 mod bindings;
 
-use bindings::{
-    Windows::Win32::Foundation::WINCODEC_ERR_WRONGSTATE,
-    Windows::Win32::Graphics::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
-    Windows::Win32::Storage::StructuredStorage::IStream,
-    Windows::Win32::UI::Shell::{WTSAT_ARGB, WTS_ALPHATYPE},
+use bindings::Windows;
+use Windows::{
+    Win32::Foundation::{WINCODEC_ERR_BADIMAGE, WINCODEC_ERR_WRONGSTATE},
+    Win32::Graphics::Gdi::{CreateBitmap, DeleteObject, HBITMAP},
+    Win32::Storage::StructuredStorage::IStream,
+    Win32::UI::Shell::{WTSAT_ARGB, WTS_ALPHATYPE},
 };
 
-com_library! {
-    on_load=on_load,
-    on_register=registry::register_provider,
-    on_unregister=registry::unregister_provider,
-    class ThumbnailProvider
-}
+mod dll;
+mod guid;
 
-/// Called when the DLL is loaded.
-///
-/// Sets up logging to the Cargo.toml directory for debug purposes.
-fn on_load() {
-    #[cfg(debug_assertions)]
-    {
-        // Set up logging to the project directory.
-        use log::LevelFilter;
-        simple_logging::log_to_file(
-            &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
-            LevelFilter::Trace,
-        )
-        .unwrap();
-    }
-}
-
-#[com_class(
-    // A unique identifier solely for jxl-winthumb
-    clsid = "df52deb1-9d07-4520-b606-97c6ecb069a2",
-    IInitializeWithStream,
-    IThumbnailProvider
+#[implement(
+    Windows::Win32::System::PropertiesSystem::IInitializeWithStream,
+    Windows::Win32::UI::Shell::IThumbnailProvider
 )]
 #[derive(Default)]
 struct ThumbnailProvider {
     stream: Option<WinStream>,
     bitmap: Option<HBITMAP>,
-}
-
-impl IInitializeWithStream for ThumbnailProvider {
-    fn initialize(&mut self, stream: ComIStream, _mode: u32) -> ComResult<()> {
-        self.stream = Some(WinStream::from(stream.0.clone()));
-        std::mem::forget(stream); // Prevent dropping, will happen later
-
-        Ok(())
-    }
 }
 
 // TODO: Use encoder channel order option when available. Not yet as of 0.3.0
@@ -73,10 +43,32 @@ fn reorder(vec: &mut Vec<u8>) {
     }
 }
 
-impl IThumbnailProvider for ThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHbitmap, ComWtsAlphatype)> {
+#[allow(non_snake_case)]
+impl ThumbnailProvider {
+    // IInitializeWithStream::Initialize
+    fn Initialize(&mut self, stream: &Option<IStream>, _grfmode: u32) -> windows::Result<()> {
+        if stream.is_none() {
+            return Err(windows::Error::new(
+                WINCODEC_ERR_WRONGSTATE,
+                "Expected an IStream object but got none",
+            ));
+        }
+        self.stream = Some(WinStream::from(stream.to_owned().unwrap()));
+        Ok(())
+    }
+
+    // IThumbnailProvider::GetThumbnail
+    fn GetThumbnail(
+        &mut self,
+        cx: u32,
+        phbmp: *mut HBITMAP,
+        pdwalpha: *mut WTS_ALPHATYPE,
+    ) -> windows::Result<()> {
         if self.stream.is_none() {
-            return Err(HRESULT::new(WINCODEC_ERR_WRONGSTATE.0 as i32).into());
+            return Err(windows::Error::new(
+                WINCODEC_ERR_WRONGSTATE,
+                "Haven't got the stream yet",
+            ));
         }
 
         let stream = self.stream.take().unwrap();
@@ -88,7 +80,9 @@ impl IThumbnailProvider for ThumbnailProvider {
 
             log::trace!("Decoding started");
 
-            let mut result = decoder.decode_buffer(reader)?;
+            let mut result = decoder
+                .decode_buffer(reader)
+                .map_err(|message| windows::Error::new(WINCODEC_ERR_BADIMAGE, message))?;
             let info = result.basic_info;
             let buf = result.frames.remove(0).data;
 
@@ -131,7 +125,12 @@ impl IThumbnailProvider for ThumbnailProvider {
         };
         self.bitmap = Some(bitmap);
 
-        Ok((ComHbitmap(bitmap), ComWtsAlphatype(WTSAT_ARGB)))
+        unsafe {
+            *phbmp = bitmap;
+            *pdwalpha = WTSAT_ARGB;
+        }
+
+        Ok(())
     }
 }
 
@@ -142,36 +141,4 @@ impl Drop for ThumbnailProvider {
             unsafe { DeleteObject(bitmap) };
         }
     }
-}
-
-// New types for deriving Intercom traits.
-
-#[derive(intercom::ForeignType, intercom::ExternType, intercom::ExternOutput)]
-#[allow(non_camel_case_types)]
-#[repr(transparent)]
-struct ComHbitmap(HBITMAP);
-
-#[derive(
-    intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
-)]
-#[repr(transparent)]
-struct ComIStream(IStream);
-
-#[derive(
-    intercom::ForeignType, intercom::ExternType, intercom::ExternOutput, intercom::ExternInput,
-)]
-#[allow(non_camel_case_types)]
-#[repr(transparent)]
-struct ComWtsAlphatype(WTS_ALPHATYPE);
-
-// COM interface definitions.
-
-#[com_interface(com_iid = "e357fccd-a995-4576-b01f-234630154e96")]
-trait IThumbnailProvider {
-    fn get_thumbnail(&mut self, cx: u32) -> ComResult<(ComHbitmap, ComWtsAlphatype)>;
-}
-
-#[com_interface(com_iid = "b824b49d-22ac-4161-ac8a-9916e8fa3f7f")]
-trait IInitializeWithStream {
-    fn initialize(&mut self, stream: ComIStream, mode: u32) -> ComResult<()>;
 }
