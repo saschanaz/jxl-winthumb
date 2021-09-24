@@ -7,7 +7,6 @@ use winreg::RegKey;
 use crate::bindings::Windows::Win32::UI::Shell::{
     SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST,
 };
-use crate::guid::JXLWINTHUMB_LIBID;
 use crate::guid::JXLWINTHUMB_THUMBNAILPROVIDER_CLSID;
 
 const EXT: &str = ".jxl";
@@ -19,59 +18,27 @@ const PERCEIVED_TYPE_KEY: &str = "PerceivedType";
 const PERCEIVED_TYPE_VALUE: &str = "image";
 
 pub fn register_base(module_path: &str) -> std::io::Result<()> {
-    fn register_typelib(module_path: &str) -> std::io::Result<()> {
-        let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-        let typelib_key = hkcr.open_subkey("TypeLib")?;
-        let (key, _) = typelib_key.create_subkey(&format!("{{{:?}}}", JXLWINTHUMB_LIBID))?;
-        key.set_value("", &"jxl-winthumb TypeLib")?;
+    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+    let clsid_key = hkcr.open_subkey("CLSID")?;
+    let (key, _) =
+        clsid_key.create_subkey(&format!("{{{:?}}}", JXLWINTHUMB_THUMBNAILPROVIDER_CLSID))?;
+    key.set_value("", &"jxl-winthumb")?;
 
-        let (version_key, _) = key.create_subkey("0.1")?;
-        version_key.set_value("", &"jxl-winthumb 0.1")?;
+    let (inproc, _) = key.create_subkey("InProcServer32")?;
+    inproc.set_value("", &module_path)?;
+    inproc.set_value("ThreadingModel", &"Both")?;
 
-        let (first, _) = version_key.create_subkey("0")?;
-        let (win64, _) = first.create_subkey("win64")?;
-        win64.set_value("", &module_path)?;
+    let (prog, _) = key.create_subkey("ProgID")?;
+    prog.set_value("", &"jxl-winthumb.ThumbnailProvider.1_0")?;
 
-        let (flags, _) = version_key.create_subkey("FLAGS")?;
-        flags.set_value("", &"0")?;
-
-        Ok(())
-    }
-
-    fn register_class(module_path: &str) -> std::io::Result<()> {
-        let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-        let clsid_key = hkcr.open_subkey("CLSID")?;
-        let (key, _) =
-            clsid_key.create_subkey(&format!("{{{:?}}}", JXLWINTHUMB_THUMBNAILPROVIDER_CLSID))?;
-        key.set_value("", &"jxl-winthumb")?;
-
-        let (inproc, _) = key.create_subkey("InProcServer32")?;
-        inproc.set_value("", &module_path)?;
-        inproc.set_value("ThreadingModel", &"Both")?;
-
-        let (prog, _) = key.create_subkey("ProgID")?;
-        prog.set_value("", &"jxl-winthumb.ThumbnailProvider.1_0")?;
-
-        let (type_lib, _) = key.create_subkey("TypeLib")?;
-        type_lib.set_value("", &format!("{{{:?}}}", JXLWINTHUMB_LIBID))?;
-
-        let (ver_ind, _) = key.create_subkey("VersionIndependentProgID")?;
-        ver_ind.set_value("", &"jxl-winthumb.ThumbnailProvider")?;
-
-        Ok(())
-    }
-
-    register_typelib(module_path)?;
-    register_class(module_path)?;
+    let (ver_ind, _) = key.create_subkey("VersionIndependentProgID")?;
+    ver_ind.set_value("", &"jxl-winthumb.ThumbnailProvider")?;
 
     Ok(())
 }
 
 pub fn unregister_base() -> std::io::Result<()> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-
-    let typelib_key = hkcr.open_subkey("TypeLib")?;
-    typelib_key.delete_subkey_all(&format!("{{{:?}}}", JXLWINTHUMB_LIBID))?;
 
     let clsid_key = hkcr.open_subkey("CLSID")?;
     clsid_key.delete_subkey_all(&format!("{{{:?}}}", JXLWINTHUMB_THUMBNAILPROVIDER_CLSID))?;
