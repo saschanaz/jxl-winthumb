@@ -28,12 +28,6 @@ pub fn register_base(module_path: &str) -> std::io::Result<()> {
     inproc.set_value("", &module_path)?;
     inproc.set_value("ThreadingModel", &"Both")?;
 
-    let (prog, _) = key.create_subkey("ProgID")?;
-    prog.set_value("", &"jxl-winthumb.ThumbnailProvider.1_0")?;
-
-    let (ver_ind, _) = key.create_subkey("VersionIndependentProgID")?;
-    ver_ind.set_value("", &"jxl-winthumb.ThumbnailProvider")?;
-
     Ok(())
 }
 
