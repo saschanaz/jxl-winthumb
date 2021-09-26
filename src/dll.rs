@@ -3,13 +3,14 @@ use std::ffi::c_void;
 use crate::{
     bindings::Windows,
     guid::JXLWINTHUMB_THUMBNAILPROVIDER_CLSID,
-    registry::{register_base, register_provider, unregister_base, unregister_provider},
+    registry::{register_clsid, register_provider, unregister_clsid, unregister_provider},
+    wic::JXLWICBitmapDecoder,
 };
 use windows::{implement, Guid, IUnknown, Interface, HRESULT};
 use Windows::{
     Win32::Foundation::{
-        BOOL, CLASS_E_CLASSNOTAVAILABLE, CLASS_E_NOAGGREGATION, E_FAIL, E_NOTIMPL, E_UNEXPECTED,
-        HINSTANCE, S_OK,
+        BOOL, CLASS_E_CLASSNOTAVAILABLE, CLASS_E_NOAGGREGATION, E_FAIL, E_NOINTERFACE, E_NOTIMPL,
+        E_UNEXPECTED, HINSTANCE, S_OK,
     },
     Win32::System::LibraryLoader::GetModuleFileNameW,
     Win32::System::SystemServices::DLL_PROCESS_ATTACH,
@@ -52,8 +53,20 @@ impl ClassFactory {
         if outer.is_some() {
             return CLASS_E_NOAGGREGATION;
         }
-        let unknown: IUnknown = crate::ThumbnailProvider::default().into();
-        unknown.query(iid, object)
+        match *iid {
+            crate::bindings::Windows::Win32::UI::Shell::IThumbnailProvider::IID => {
+                let unknown: IUnknown = crate::ThumbnailProvider::default().into();
+                unknown.query(iid, object)
+            }
+            crate::bindings::Windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
+                let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
+                unknown.query(iid, object)
+            }
+            _ => {
+                log::trace!("Unknown IID: {:?}", *iid);
+                E_NOINTERFACE
+            }
+        }
     }
     pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::Result<()> {
         E_NOTIMPL.ok()
@@ -71,7 +84,7 @@ pub unsafe extern "system" fn DllRegisterServer() -> HRESULT {
         }
         result.unwrap()
     };
-    if register_base(&module_path).is_ok() && register_provider().is_ok() {
+    if register_clsid(&module_path).is_ok() && register_provider().is_ok() {
         S_OK
     } else {
         E_FAIL
@@ -82,7 +95,7 @@ pub unsafe extern "system" fn DllRegisterServer() -> HRESULT {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub unsafe extern "system" fn DllUnregisterServer() -> HRESULT {
-    if unregister_base().is_ok() && unregister_provider().is_ok() {
+    if unregister_clsid().is_ok() && unregister_provider().is_ok() {
         S_OK
     } else {
         E_FAIL
@@ -97,17 +110,6 @@ pub extern "stdcall" fn DllMain(
     reason: u32,
     _reserved: *mut c_void,
 ) -> bool {
-    // Sets up logging to the Cargo.toml directory for debug purposes.
-    #[cfg(debug_assertions)]
-    {
-        // Set up logging to the project directory.
-        use log::LevelFilter;
-        simple_logging::log_to_file(
-            &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
-            LevelFilter::Trace,
-        )
-        .unwrap();
-    }
     if reason == DLL_PROCESS_ATTACH {
         unsafe {
             DLL_INSTANCE = dll_instance;
@@ -124,6 +126,16 @@ pub unsafe extern "system" fn DllGetClassObject(
     riid: *const Guid,
     pout: *mut windows::RawPtr,
 ) -> HRESULT {
+    // Sets up logging to the Cargo.toml directory for debug purposes.
+    #[cfg(debug_assertions)]
+    {
+        // Set up logging to the project directory.
+        simple_logging::log_to_file(
+            &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
+            log::LevelFilter::Trace,
+        )
+        .unwrap();
+    }
     log::trace!("DllGetClassObject");
     if *riid != crate::bindings::Windows::Win32::System::Com::IClassFactory::IID {
         return E_UNEXPECTED;
@@ -132,9 +144,10 @@ pub unsafe extern "system" fn DllGetClassObject(
     let factory = ClassFactory {};
     let unknown: IUnknown = factory.into();
 
-    if *rclsid == JXLWINTHUMB_THUMBNAILPROVIDER_CLSID {
-        return unknown.query(riid, pout);
+    match *rclsid {
+        JXLWINTHUMB_THUMBNAILPROVIDER_CLSID | JXLWICBitmapDecoder::CLSID => {
+            unknown.query(riid, pout)
+        }
+        _ => CLASS_E_CLASSNOTAVAILABLE,
     }
-
-    CLASS_E_CLASSNOTAVAILABLE
 }

@@ -20,6 +20,7 @@ use Windows::{
 
 mod dll;
 mod guid;
+mod wic;
 
 #[implement(
     Windows::Win32::System::PropertiesSystem::IInitializeWithStream,
