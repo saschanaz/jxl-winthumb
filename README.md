@@ -18,11 +18,11 @@ Please read [the requirements](https://github.com/saschanaz/jxl-rs/tree/main/lib
 
 ## Helpful resources
 
-* [Thumbnail Handlers](https://docs.microsoft.com/en-us/windows/win32/shell/thumbnail-providers)
-* [IThumbnailProvider::GetThumbnail method (thumbcache.h)](https://docs.microsoft.com/en-us/windows/win32/api/thumbcache/nf-thumbcache-ithumbnailprovider-getthumbnail)
-* [IInitializeWithStream::Initialize method (propsys.h)](https://docs.microsoft.com/en-us/windows/win32/api/propsys/nf-propsys-iinitializewithstream-initialize)
+* [Integration with Windows Photo Gallery and Windows Explorer](https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries)
 
 ## Inspired by
 
 * [Intercom thumbnail provider example](https://github.com/Rantanen/intercom/tree/88d6a3c0470150805740b75ed23ec15131ec7469/samples/thumbnail_provider)
 * [FlifWICCodec](https://github.com/peirick/FlifWICCodec/)
+* [flif_windows_plugin](https://github.com/fherzog2/flif_windows_plugin/)
+* [jpegxl-wic](https://github.com/mirillis/jpegxl-wic)
