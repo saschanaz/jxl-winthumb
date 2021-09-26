@@ -2,6 +2,8 @@
 
 A JPEG XL (*.jxl) thumbnail handler for Windows File Explorer.
 
+Now with WIC decoding support, which means you can use Windows Photo Viewer or any WIC-capable image viewers to view JXL files.
+
 ## How to install
 
 0. Install [Microsoft Visual C++ Redistributable for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2019) if it's not already installed.
@@ -9,10 +11,6 @@ A JPEG XL (*.jxl) thumbnail handler for Windows File Explorer.
 2. Open a terminal window as administrator
 3. Move to your download directory
 4. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
-
-## Why not Windows Imaging Component?
-
-It was useful before Windows 10 era when Windows Photo Gallery existed, but not anymore as Microsoft now uses its own undocumented way to add system codecs for UWP apps.
 
 ## Build environment
 
