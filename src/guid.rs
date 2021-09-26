@@ -1,9 +1,9 @@
 use windows::Guid;
 
-pub static JXLWINTHUMB_THUMBNAILPROVIDER_CLSID: Guid =
-    get_guid_from_u128(0xdf52deb1_9d07_4520_b606_97c6ecb069a2);
+pub const JXLWINTHUMB_VENDOR_CLSID: Guid =
+    get_guid_from_u128(0x448d5eb7_6555_476b_a840_034cca9afe6e);
 
-const fn get_guid_from_u128(uuid: u128) -> Guid {
+pub const fn get_guid_from_u128(uuid: u128) -> Guid {
     const fn get_byte(uuid: u128, index: u8) -> u8 {
         (uuid >> (8 * index) & 0xff) as u8
     }
@@ -23,4 +23,8 @@ const fn get_guid_from_u128(uuid: u128) -> Guid {
             get_byte(uuid, 0),
         ],
     )
+}
+
+pub fn guid_to_string(guid: &Guid) -> String {
+    format!("{{{:?}}}", guid)
 }
