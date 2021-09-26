@@ -112,7 +112,13 @@ impl JXLWICBitmapDecoder {
         log::trace!("[{}]: {:?}", index, basic_info);
         // TODO: this is copying the whole frame data, could it be prevented?
         let frame_decode = JXLWICBitmapFrameDecode::new(frame.data.clone(), basic_info);
-        frame_decode.cast()
+        let casted: IWICBitmapFrameDecode = frame_decode.cast()?;
+
+        let mut width = 0u32;
+        let mut height = 0u32;
+        casted.GetSize(&mut width, &mut height)?;
+
+        Ok(casted)
 
         // Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.ok().unwrap_err())
     }
@@ -165,7 +171,7 @@ impl JXLWICBitmapFrameDecode {
         Ok(())
     }
     pub unsafe fn GetMetadataQueryReader(&self) -> windows::Result<IWICMetadataQueryReader> {
-        log::trace!("MetadataQueryReader");
+        log::trace!("GetMetadataQueryReader");
         Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.ok().unwrap_err())
     }
     pub unsafe fn GetColorContexts(
@@ -174,10 +180,12 @@ impl JXLWICBitmapFrameDecode {
         _ppicolorcontexts: *mut Option<IWICColorContext>,
         pcactualcount: *mut u32,
     ) -> windows::Result<()> {
+        log::trace!("GetColorContexts");
         *pcactualcount = 0;
         Ok(())
     }
     pub unsafe fn GetThumbnail(&self) -> windows::Result<IWICBitmapSource> {
+        log::trace!("GetThumbnail");
         Err(WINCODEC_ERR_CODECNOTHUMBNAIL.ok().unwrap_err())
     }
 }
