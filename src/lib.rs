@@ -135,23 +135,28 @@ impl JXLWICBitmapDecoder {
         let basic_info = self.decoded.as_ref().unwrap().basic_info;
 
         log::trace!("[{}]: {:?}", index, basic_info);
-        // TODO: this is copying the whole frame data, could it be prevented?
-        let frame_decode = JXLWICBitmapFrameDecode::new(frame.data.clone(), basic_info);
+        // A frame decode should not outlive its decoder or the pointer will become invalid
+        // Ideally this should use a reference but lifetimes are not supported on COM interfaces.
+        let frame_decode = JXLWICBitmapFrameDecode::new(frame.data.as_ptr(), basic_info);
         Ok(frame_decode.into())
     }
 }
 
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapFrameDecode)]
 pub struct JXLWICBitmapFrameDecode {
-    data: Vec<u8>,
+    /** Can be invalidated if the decoder gets destroyed */
+    data_ptr: *const u8,
     basic_info: BasicInfo,
 }
 
 #[allow(non_snake_case)]
 #[allow(clippy::missing_safety_doc)]
 impl JXLWICBitmapFrameDecode {
-    pub fn new(data: Vec<u8>, basic_info: BasicInfo) -> Self {
-        Self { data, basic_info }
+    pub fn new(data: *const u8, basic_info: BasicInfo) -> Self {
+        Self {
+            data_ptr: data,
+            basic_info,
+        }
     }
 
     pub unsafe fn GetSize(&self, puiwidth: *mut u32, puiheight: *mut u32) -> windows::Result<()> {
@@ -199,7 +204,7 @@ impl JXLWICBitmapFrameDecode {
             let src_offset = self.basic_info.xsize as i32 * 4 * y;
             let dst_offset = prc.Width * 4 * (prc.Y - y);
             std::ptr::copy_nonoverlapping(
-                self.data.as_ptr().offset((src_offset + prc.X) as isize),
+                self.data_ptr.offset((src_offset + prc.X) as isize),
                 pbbuffer.offset(dst_offset as isize),
                 (prc.Width as usize) * 4,
             );
