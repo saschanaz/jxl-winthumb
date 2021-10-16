@@ -12,9 +12,9 @@ crate-type = ["cdylib"]
 [dependencies]
 simple-logging = "2.0.2"
 log = "0.4.14"
-kagamijxl = "0.2.9"
+kagamijxl = "0.3.0"
 winreg = "0.10.1"
-windows = "0.21.0"
+windows = "0.21.1"
 
 [build-dependencies]
-windows = "0.21.0"
+windows = "0.21.1"

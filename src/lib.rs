@@ -2,7 +2,7 @@
 // XXX: https://github.com/microsoft/windows-rs/issues/1184
 #![allow(clippy::forget_copy)]
 
-use kagamijxl::{BasicInfo, DecodeResult, Decoder};
+use kagamijxl::{BasicInfo, DecodeProgress, Decoder};
 use std::io::BufReader;
 use windows::{implement, Guid, Interface};
 
@@ -36,7 +36,7 @@ use guid::get_guid_from_u128;
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
 #[derive(Default)]
 pub struct JXLWICBitmapDecoder {
-    decoded: Option<DecodeResult>,
+    decoded: Option<DecodeProgress>,
 }
 
 #[allow(non_snake_case)]
@@ -61,11 +61,11 @@ impl JXLWICBitmapDecoder {
         let stream = WinStream::from(pistream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let mut decoder = Decoder::new();
+        let decoder = Decoder::new();
 
-        let result = decoder
-            .decode_buffer(reader)
-            .map_err(|message| windows::Error::new(WINCODEC_ERR_BADIMAGE, message))?;
+        let result = decoder.decode_buffer(reader).map_err(|err| {
+            windows::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str())
+        })?;
         self.decoded = Some(result);
 
         Ok(())
