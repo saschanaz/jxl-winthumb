@@ -62,7 +62,6 @@ impl JXLWICBitmapDecoder {
         let reader = BufReader::new(stream);
 
         let mut decoder = Decoder::new();
-        decoder.max_frames = Some(1);
 
         let result = decoder
             .decode_buffer(reader)
