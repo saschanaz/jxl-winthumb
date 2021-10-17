@@ -192,12 +192,14 @@ impl JXLWICBitmapFrameDecode {
         }
 
         let prc = prc.as_ref().unwrap();
+        log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
+
         let basic_info = &self.decoded.borrow().basic_info;
         let data = &self.decoded.borrow().frames[self.index].data;
 
         for y in prc.Y..(prc.Y + prc.Height) {
             let src_offset = basic_info.xsize as i32 * 4 * y;
-            let dst_offset = prc.Width * 4 * (prc.Y - y);
+            let dst_offset = prc.Width * 4 * (y - prc.Y);
             std::ptr::copy_nonoverlapping(
                 data.as_ptr().offset((src_offset + prc.X) as isize),
                 pbbuffer.offset(dst_offset as isize),
