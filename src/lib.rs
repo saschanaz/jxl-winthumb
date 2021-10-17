@@ -2,8 +2,8 @@
 // XXX: https://github.com/microsoft/windows-rs/issues/1184
 #![allow(clippy::forget_copy)]
 
-use kagamijxl::{BasicInfo, DecodeProgress, Decoder};
-use std::io::BufReader;
+use kagamijxl::{DecodeProgress, Decoder};
+use std::{cell::RefCell, io::BufReader, rc::Rc};
 use windows::{implement, Guid, Interface};
 
 mod registry;
@@ -36,7 +36,7 @@ use guid::get_guid_from_u128;
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
 #[derive(Default)]
 pub struct JXLWICBitmapDecoder {
-    decoded: Option<DecodeProgress>,
+    decoded: Option<Rc<RefCell<DecodeProgress>>>,
 }
 
 #[allow(non_snake_case)]
@@ -66,7 +66,7 @@ impl JXLWICBitmapDecoder {
         let result = decoder.decode_buffer(reader).map_err(|err| {
             windows::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str())
         })?;
-        self.decoded = Some(result);
+        self.decoded = Some(Rc::new(RefCell::new(result)));
 
         Ok(())
     }
@@ -120,7 +120,7 @@ impl JXLWICBitmapDecoder {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
 
-        let frame_count = self.decoded.as_ref().unwrap().frames.len();
+        let frame_count = self.decoded.as_ref().unwrap().borrow().frames.len();
         log::trace!("JXLWICBitmapDecoder::GetFrameCount: {}", frame_count);
         Ok(frame_count as u32)
     }
@@ -130,38 +130,32 @@ impl JXLWICBitmapDecoder {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
 
-        let frame = &self.decoded.as_ref().unwrap().frames[index as usize];
-        let basic_info = self.decoded.as_ref().unwrap().basic_info;
-
+        let basic_info = self.decoded.as_ref().unwrap().borrow().basic_info;
         log::trace!("[{}]: {:?}", index, basic_info);
-        // A frame decode should not outlive its decoder or the pointer will become invalid
-        // Ideally this should use a reference but lifetimes are not supported on COM interfaces.
-        let frame_decode = JXLWICBitmapFrameDecode::new(frame.data.as_ptr(), basic_info);
+
+        let frame_decode =
+            JXLWICBitmapFrameDecode::new(self.decoded.to_owned().unwrap(), index as usize);
         Ok(frame_decode.into())
     }
 }
 
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapFrameDecode)]
 pub struct JXLWICBitmapFrameDecode {
-    /** Can be invalidated if the decoder gets destroyed */
-    data_ptr: *const u8,
-    basic_info: BasicInfo,
+    decoded: Rc<RefCell<DecodeProgress>>,
+    index: usize,
 }
 
 #[allow(non_snake_case)]
 #[allow(clippy::missing_safety_doc)]
 impl JXLWICBitmapFrameDecode {
-    pub fn new(data: *const u8, basic_info: BasicInfo) -> Self {
-        Self {
-            data_ptr: data,
-            basic_info,
-        }
+    pub fn new(decoded: Rc<RefCell<DecodeProgress>>, index: usize) -> Self {
+        Self { decoded, index }
     }
 
     pub unsafe fn GetSize(&self, puiwidth: *mut u32, puiheight: *mut u32) -> windows::Result<()> {
         log::trace!("JXLWICBitmapFrameDecode::GetSize");
-        *puiwidth = self.basic_info.xsize;
-        *puiheight = self.basic_info.ysize;
+        *puiwidth = self.decoded.borrow().basic_info.xsize;
+        *puiheight = self.decoded.borrow().basic_info.ysize;
         Ok(())
     }
 
@@ -198,12 +192,14 @@ impl JXLWICBitmapFrameDecode {
         }
 
         let prc = prc.as_ref().unwrap();
+        let basic_info = &self.decoded.borrow().basic_info;
+        let data = &self.decoded.borrow().frames[self.index].data;
 
         for y in prc.Y..(prc.Y + prc.Height) {
-            let src_offset = self.basic_info.xsize as i32 * 4 * y;
+            let src_offset = basic_info.xsize as i32 * 4 * y;
             let dst_offset = prc.Width * 4 * (prc.Y - y);
             std::ptr::copy_nonoverlapping(
-                self.data_ptr.offset((src_offset + prc.X) as isize),
+                data.as_ptr().offset((src_offset + prc.X) as isize),
                 pbbuffer.offset(dst_offset as isize),
                 (prc.Width as usize) * 4,
             );
