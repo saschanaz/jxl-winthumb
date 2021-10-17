@@ -6,8 +6,8 @@ pub struct WinStream {
     stream: IStream,
 }
 
-impl WinStream {
-    pub fn from(stream: IStream) -> Self {
+impl From<IStream> for WinStream {
+    fn from(stream: IStream) -> Self {
         Self { stream }
     }
 }
