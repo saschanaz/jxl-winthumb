@@ -14,8 +14,7 @@ use windows as Windows;
 use windows::Win32::{
     Foundation::*,
     Graphics::Imaging::*,
-    System::Com::IStream,
-    System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER},
+    System::Com::{CoCreateInstance, IStream, CLSCTX_INPROC_SERVER},
 };
 
 mod dll;
