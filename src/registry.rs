@@ -1,4 +1,4 @@
-use windows::Interface;
+use windows::runtime::Interface;
 use winreg::enums::*;
 use winreg::types::ToRegValue;
 use winreg::RegKey;
@@ -15,7 +15,10 @@ const CONTENT_TYPE_VALUE: &str = "image/jxl";
 const PERCEIVED_TYPE_KEY: &str = "PerceivedType";
 const PERCEIVED_TYPE_VALUE: &str = "image";
 
-fn register_clsid_base(module_path: &str, clsid: &windows::Guid) -> std::io::Result<RegKey> {
+fn register_clsid_base(
+    module_path: &str,
+    clsid: &windows::runtime::GUID,
+) -> std::io::Result<RegKey> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     let clsid_key = hkcr.open_subkey("CLSID")?;
     let (key, _) = clsid_key.create_subkey(&guid_to_string(clsid))?;
@@ -68,7 +71,7 @@ pub fn register_clsid(module_path: &str) -> std::io::Result<()> {
 
     let (formats, _) = wic_decoder_key.create_subkey("Formats")?;
     formats.create_subkey(guid_to_string(
-        &crate::bindings::Windows::Win32::Graphics::Imaging::GUID_WICPixelFormat32bppRGBA,
+        &windows::Win32::Graphics::Imaging::GUID_WICPixelFormat32bppRGBA,
     ))?;
 
     // Decoder specific required entries
@@ -159,7 +162,7 @@ pub fn register_provider() -> std::io::Result<()> {
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-thumbnail-cache
     shell_ex
         .create_subkey(&guid_to_string(
-            &crate::bindings::Windows::Win32::UI::Shell::IThumbnailProvider::IID,
+            &windows::Win32::UI::Shell::IThumbnailProvider::IID,
         ))?
         .0
         .set_value("", &"{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}")?;
@@ -173,7 +176,7 @@ pub fn unregister_provider() -> std::io::Result<()> {
         format!(
             "{}\\ShellEx\\{{{:?}}}",
             EXT,
-            crate::bindings::Windows::Win32::UI::Shell::IThumbnailProvider::IID
+            windows::Win32::UI::Shell::IThumbnailProvider::IID
         ),
         KEY_READ | KEY_WRITE,
     ) {

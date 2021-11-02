@@ -1,4 +1,4 @@
-use windows::Guid;
+use windows::runtime::GUID as Guid;
 
 pub const JXLWINTHUMB_VENDOR_CLSID: Guid =
     get_guid_from_u128(0x448d5eb7_6555_476b_a840_034cca9afe6e);

@@ -1,6 +1,6 @@
 use std::io::{ErrorKind, Read};
 
-use crate::bindings::Windows::Win32::Storage::StructuredStorage::IStream;
+use windows::Win32::System::Com::IStream;
 
 pub struct WinStream {
     stream: IStream,

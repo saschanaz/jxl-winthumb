@@ -1,17 +1,13 @@
 use std::ffi::c_void;
 
 use crate::{
-    bindings::Windows,
     registry::{register_clsid, register_provider, unregister_clsid, unregister_provider},
     JXLWICBitmapDecoder,
 };
-use windows::{implement, Guid, IUnknown, Interface, HRESULT};
-use Windows::{
-    Win32::Foundation::{
-        BOOL, CLASS_E_CLASSNOTAVAILABLE, CLASS_E_NOAGGREGATION, E_FAIL, E_NOINTERFACE, E_NOTIMPL,
-        E_UNEXPECTED, HINSTANCE, S_OK,
-    },
-    Win32::System::LibraryLoader::GetModuleFileNameW,
+use windows as Windows;
+use windows::runtime::{implement, IUnknown, Interface, GUID, HRESULT};
+use windows::{
+    Win32::Foundation::*, Win32::System::LibraryLoader::GetModuleFileNameW,
     Win32::System::SystemServices::DLL_PROCESS_ATTACH,
 };
 
@@ -45,15 +41,15 @@ struct ClassFactory {}
 impl ClassFactory {
     pub unsafe fn CreateInstance(
         &self,
-        outer: &Option<windows::IUnknown>,
-        iid: *const Guid,
-        object: *mut windows::RawPtr,
+        outer: &Option<windows::runtime::IUnknown>,
+        iid: *const GUID,
+        object: *mut windows::runtime::RawPtr,
     ) -> HRESULT {
         if outer.is_some() {
             return CLASS_E_NOAGGREGATION;
         }
         match *iid {
-            crate::bindings::Windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
+            windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
                 let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
                 unknown.query(iid, object)
             }
@@ -63,16 +59,14 @@ impl ClassFactory {
             }
         }
     }
-    pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::Result<()> {
+    pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::runtime::Result<()> {
         E_NOTIMPL.ok()
     }
 }
 
 fn shell_change_notify() {
-    use crate::bindings::Windows::Win32::UI::Shell::{
-        SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST,
-    };
     use std::ptr::null_mut;
+    use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST};
     unsafe { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, null_mut(), null_mut()) };
 }
 
@@ -127,9 +121,9 @@ pub extern "stdcall" fn DllMain(
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub unsafe extern "system" fn DllGetClassObject(
-    rclsid: *const Guid,
-    riid: *const Guid,
-    pout: *mut windows::RawPtr,
+    rclsid: *const GUID,
+    riid: *const GUID,
+    pout: *mut windows::runtime::RawPtr,
 ) -> HRESULT {
     // Sets up logging to the Cargo.toml directory for debug purposes.
     #[cfg(debug_assertions)]
@@ -142,7 +136,7 @@ pub unsafe extern "system" fn DllGetClassObject(
         .unwrap();
     }
     log::trace!("DllGetClassObject");
-    if *riid != crate::bindings::Windows::Win32::System::Com::IClassFactory::IID {
+    if *riid != windows::Win32::System::Com::IClassFactory::IID {
         return E_UNEXPECTED;
     }
 
