@@ -6,9 +6,9 @@ use crate::{
 };
 use windows as Windows;
 use windows::runtime::{implement, IUnknown, Interface, GUID, HRESULT};
-use windows::{
-    Win32::Foundation::*, Win32::System::LibraryLoader::GetModuleFileNameW,
-    Win32::System::SystemServices::DLL_PROCESS_ATTACH,
+use windows::Win32::{
+    Foundation::*, System::LibraryLoader::GetModuleFileNameW,
+    System::SystemServices::DLL_PROCESS_ATTACH,
 };
 
 static mut DLL_INSTANCE: HINSTANCE = HINSTANCE { 0: 0 };

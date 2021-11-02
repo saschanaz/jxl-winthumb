@@ -11,11 +11,11 @@ mod winstream;
 use winstream::WinStream;
 
 use windows as Windows;
-use windows::{
-    Win32::Foundation::*,
-    Win32::Graphics::Imaging::*,
-    Win32::System::Com::IStream,
-    Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER},
+use windows::Win32::{
+    Foundation::*,
+    Graphics::Imaging::*,
+    System::Com::IStream,
+    System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER},
 };
 
 mod dll;
