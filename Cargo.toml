@@ -16,7 +16,7 @@ kagamijxl = "0.3.2"
 winreg = "0.10.1"
 
 [dependencies.windows]
-version = "0.24.0"
+version = "0.25.0"
 features = [
   "build",
   "Win32_Graphics_Imaging",

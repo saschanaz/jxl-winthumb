@@ -1,6 +1,4 @@
 #![crate_type = "dylib"]
-// XXX: https://github.com/microsoft/windows-rs/issues/1184
-#![allow(clippy::forget_copy)]
 
 use kagamijxl::{DecodeProgress, Decoder};
 use std::{cell::RefCell, io::BufReader, rc::Rc};
