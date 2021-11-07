@@ -26,7 +26,6 @@ fn register_clsid_base(
     let clsid_key = hkcr.open_subkey("CLSID")?;
     let (key, _) = clsid_key.create_subkey(&guid_to_string(clsid))?;
     key.set_value("", &"jxl-winthumb")?;
-    key.set_value("", &"JXL File")?;
 
     let (inproc, _) = key.create_subkey("InProcServer32")?;
     inproc.set_value("", &module_path)?;
