@@ -8,6 +8,7 @@ use crate::guid::{guid_to_string, JXLWINTHUMB_VENDOR_CLSID};
 use crate::JXLWICBitmapDecoder;
 
 mod kindmap;
+mod property_handler;
 
 const EXT: &str = ".jxl";
 
@@ -122,6 +123,16 @@ fn create_expand_sz(value: &str) -> RegValue {
     }
 }
 
+fn register_property_list(system_ext_key: &RegKey) -> std::io::Result<()> {
+    // https://docs.microsoft.com/en-us/windows/win32/properties/building-property-handlers-property-lists
+    // The example uses HKCR\.ext but somehow the system actually uses HKCR\SystemFileAssociations\.ext instead.
+
+    // Copied from other system file associations and trimmed down.
+    system_ext_key.set_value("FullDetails", &"prop:System.PropGroup.Image;System.Image.Dimensions;System.Image.HorizontalSize;System.Image.VerticalSize;System.PropGroup.FileSystem;System.ItemNameDisplay;System.ItemType;System.ItemFolderPathDisplay;System.DateCreated;System.DateModified;System.Size;System.FileAttributes;System.OfflineAvailability;System.OfflineStatus;System.SharedWith;System.FileOwner;System.ComputerName")?;
+    system_ext_key.set_value("PreviewDetails", &"prop:*System.Image.Dimensions;*System.Size;*System.OfflineAvailability;*System.OfflineStatus;*System.DateCreated;*System.DateModified;*System.DateAccessed;*System.SharedWith")?;
+    Ok(())
+}
+
 fn register_provider() -> std::io::Result<()> {
     // Integration with the Windows Photo Gallery
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-photo-gallery
@@ -145,6 +156,7 @@ fn register_provider() -> std::io::Result<()> {
         .create_subkey("ShellEx\\ContextMenuHandlers\\ShellImagePreview")?
         .0
         .set_value("", &"{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}")?;
+    register_property_list(&system_ext_key)?;
 
     let (progid_key, _) = hkcr.create_subkey(PROGID)?;
     progid_key.set_value("", &"JXL File")?;
@@ -204,9 +216,10 @@ fn unregister_provider() -> std::io::Result<()> {
 }
 
 pub fn register(module_path: &str) -> std::io::Result<()> {
-    register_clsid(&module_path)?;
+    register_clsid(module_path)?;
     register_provider()?;
     kindmap::register_explorer_kind()?;
+    property_handler::register_property_handler(module_path)?;
     Ok(())
 }
 
@@ -214,5 +227,6 @@ pub fn unregister() -> std::io::Result<()> {
     unregister_clsid()?;
     unregister_provider()?;
     kindmap::unregister_explorer_kind()?;
+    property_handler::unregister_property_handler()?;
     Ok(())
 }

@@ -19,6 +19,8 @@ mod dll;
 mod guid;
 use guid::get_guid_from_u128;
 
+mod properties;
+
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
 #[derive(Default)]
 pub struct JXLWICBitmapDecoder {

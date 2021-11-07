@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 
 use crate::{
+    properties::JXLPropertyStore,
     registry::{register, unregister},
     JXLWICBitmapDecoder,
 };
@@ -51,6 +52,10 @@ impl ClassFactory {
         match *iid {
             windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
                 let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
+                unknown.query(iid, object)
+            }
+            windows::Win32::System::PropertiesSystem::IPropertyStore::IID => {
+                let unknown: IUnknown = JXLPropertyStore::default().into();
                 unknown.query(iid, object)
             }
             _ => {
@@ -144,7 +149,7 @@ pub unsafe extern "system" fn DllGetClassObject(
     let unknown: IUnknown = factory.into();
 
     match *rclsid {
-        JXLWICBitmapDecoder::CLSID => unknown.query(riid, pout),
+        JXLWICBitmapDecoder::CLSID | JXLPropertyStore::CLSID => unknown.query(riid, pout),
         _ => CLASS_E_CLASSNOTAVAILABLE,
     }
 }
