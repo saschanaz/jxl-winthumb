@@ -19,6 +19,7 @@ Please read [the requirements](https://github.com/saschanaz/jxl-rs/tree/main/lib
 ## Helpful resources
 
 * [Integration with Windows Photo Gallery and Windows Explorer](https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries)
+* [Using Kind Names](https://docs.microsoft.com/en-us/windows/win32/properties/building-property-handlers-user-friendly-kind-names)
 
 ## Inspired by
 

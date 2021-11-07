@@ -1,7 +1,7 @@
 use std::ffi::c_void;
 
 use crate::{
-    registry::{register_clsid, register_provider, unregister_clsid, unregister_provider},
+    registry::{register, unregister},
     JXLWICBitmapDecoder,
 };
 use windows as Windows;
@@ -81,7 +81,7 @@ pub unsafe extern "system" fn DllRegisterServer() -> HRESULT {
         }
         result.unwrap()
     };
-    if register_clsid(&module_path).is_ok() && register_provider().is_ok() {
+    if register(&module_path).is_ok() {
         shell_change_notify();
         S_OK
     } else {
@@ -93,7 +93,7 @@ pub unsafe extern "system" fn DllRegisterServer() -> HRESULT {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub unsafe extern "system" fn DllUnregisterServer() -> HRESULT {
-    if unregister_clsid().is_ok() && unregister_provider().is_ok() {
+    if unregister().is_ok() {
         shell_change_notify();
         S_OK
     } else {

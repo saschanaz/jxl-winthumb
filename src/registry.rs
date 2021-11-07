@@ -7,6 +7,8 @@ use winreg::RegValue;
 use crate::guid::{guid_to_string, JXLWINTHUMB_VENDOR_CLSID};
 use crate::JXLWICBitmapDecoder;
 
+mod kindmap;
+
 const EXT: &str = ".jxl";
 
 const PROGID: &str = "jxlwinthumbfile";
@@ -23,6 +25,7 @@ fn register_clsid_base(
     let clsid_key = hkcr.open_subkey("CLSID")?;
     let (key, _) = clsid_key.create_subkey(&guid_to_string(clsid))?;
     key.set_value("", &"jxl-winthumb")?;
+    key.set_value("", &"JXL File")?;
 
     let (inproc, _) = key.create_subkey("InProcServer32")?;
     inproc.set_value("", &module_path)?;
@@ -60,7 +63,7 @@ fn set_pattern(key: &RegKey, pattern: Vec<u8>) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn register_clsid(module_path: &str) -> std::io::Result<()> {
+fn register_clsid(module_path: &str) -> std::io::Result<()> {
     let wic_decoder_key = register_clsid_base(module_path, &JXLWICBitmapDecoder::CLSID)?;
     // General required entries
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-generalregentries
@@ -97,7 +100,7 @@ pub fn register_clsid(module_path: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn unregister_clsid() -> std::io::Result<()> {
+fn unregister_clsid() -> std::io::Result<()> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
 
     let clsid_key = hkcr.open_subkey("CLSID")?;
@@ -119,7 +122,7 @@ fn create_expand_sz(value: &str) -> RegValue {
     }
 }
 
-pub fn register_provider() -> std::io::Result<()> {
+fn register_provider() -> std::io::Result<()> {
     // Integration with the Windows Photo Gallery
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-photo-gallery
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
@@ -170,7 +173,7 @@ pub fn register_provider() -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn unregister_provider() -> std::io::Result<()> {
+fn unregister_provider() -> std::io::Result<()> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     if let Ok(itp_clsid) = hkcr.open_subkey_with_flags(
         format!(
@@ -197,5 +200,19 @@ pub fn unregister_provider() -> std::io::Result<()> {
 
     hkcr.delete_subkey_all(PROGID)?;
 
+    Ok(())
+}
+
+pub fn register(module_path: &str) -> std::io::Result<()> {
+    register_clsid(&module_path)?;
+    register_provider()?;
+    kindmap::register_explorer_kind()?;
+    Ok(())
+}
+
+pub fn unregister() -> std::io::Result<()> {
+    unregister_clsid()?;
+    unregister_provider()?;
+    kindmap::unregister_explorer_kind()?;
     Ok(())
 }
