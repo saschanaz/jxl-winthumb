@@ -170,7 +170,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "kagamijxl",
  "log",
@@ -202,15 +202,15 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.106"
+version = "0.2.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a60553f9a9e039a333b4e9b20573b9e9b9c0bb3a11e201ccc48ef4283456d673"
+checksum = "fbe5e23404da5b4f555ef85ebed98fb4083e55a00c317800bc2a50ede9f3d219"
 
 [[package]]
 name = "libjxl-src"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2207c4db4d7cf4caded32c3a4e58957676cdd954ef109351e73d789bbfa5612f"
+checksum = "3598f2f63af9ee2c19e5071aa51d3023bd545d2a658bdeed1f275415924ebcba"
 dependencies = [
  "cmake",
 ]
