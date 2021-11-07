@@ -144,7 +144,7 @@ pub fn register_provider() -> std::io::Result<()> {
         .set_value("", &"{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}")?;
 
     let (progid_key, _) = hkcr.create_subkey(PROGID)?;
-    progid_key.set_value("", &"jxl-winthumb")?;
+    progid_key.set_value("", &"JXL File")?;
     let (progid_shell_key, _) = progid_key.create_subkey("shell")?;
     let (open_key, _) = progid_shell_key.create_subkey("open")?;
     open_key.set_raw_value(
