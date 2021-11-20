@@ -17,7 +17,6 @@ use windows::Win32::{
 
 mod dll;
 mod guid;
-use guid::get_guid_from_u128;
 
 mod properties;
 
@@ -30,8 +29,8 @@ pub struct JXLWICBitmapDecoder {
 #[allow(non_snake_case)]
 #[allow(clippy::missing_safety_doc)]
 impl JXLWICBitmapDecoder {
-    pub const CLSID: GUID = get_guid_from_u128(0x655896c6_b7d0_4d74_8afb_a02ece3f5e5a);
-    pub const CONTAINER_ID: GUID = get_guid_from_u128(0x81e337bc_c1d1_4dee_a17c_402041ba9b5e);
+    pub const CLSID: GUID = GUID::from_u128(0x655896c6_b7d0_4d74_8afb_a02ece3f5e5a);
+    pub const CONTAINER_ID: GUID = GUID::from_u128(0x81e337bc_c1d1_4dee_a17c_402041ba9b5e);
 
     pub fn QueryCapability(&self, _pistream: &Option<IStream>) -> windows::core::Result<i32> {
         log::trace!("QueryCapability");

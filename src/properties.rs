@@ -12,7 +12,6 @@ use windows::Win32::{
     },
 };
 
-use crate::guid::get_guid_from_u128;
 use crate::winstream::WinStream;
 use kagamijxl::Decoder;
 
@@ -29,7 +28,7 @@ pub struct JXLPropertyStore {
 #[allow(non_snake_case)]
 #[allow(clippy::missing_safety_doc)]
 impl JXLPropertyStore {
-    pub const CLSID: GUID = get_guid_from_u128(0x95ffe0f8_ab15_4751_a2f3_cfafdbf13664);
+    pub const CLSID: GUID = GUID::from_u128(0x95ffe0f8_ab15_4751_a2f3_cfafdbf13664);
 
     pub unsafe fn Initialize(
         &self,
@@ -52,7 +51,7 @@ impl JXLPropertyStore {
         // XXX: This is copied from um/propkey.h.
         // https://github.com/microsoft/win32metadata/issues/730
         let PSGUID_IMAGESUMMARYINFORMATION =
-            get_guid_from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
+            GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
         let variant = InitPropVariantFromUInt32Vector(&result.basic_info.xsize, 1)?;
         let propkey = PROPERTYKEY {
