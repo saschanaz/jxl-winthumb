@@ -1,12 +1,12 @@
 use std::io::BufReader;
 
 use windows as Windows;
-use windows::runtime::{implement, Interface, GUID};
+use windows::core::{implement, Interface, GUID};
 use windows::Win32::{
     Foundation::*,
     System::Com::IStream,
     System::Com::StructuredStorage::PROPVARIANT,
-    System::PropertiesSystem::{
+    UI::Shell::PropertiesSystem::{
         IPropertyStoreCache, InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector,
         PSCreateMemoryPropertyStore, PROPERTYKEY, PSC_READONLY,
     },
@@ -17,9 +17,9 @@ use crate::winstream::WinStream;
 use kagamijxl::Decoder;
 
 #[implement(
-    Windows::Win32::System::PropertiesSystem::IInitializeWithStream,
-    Windows::Win32::System::PropertiesSystem::IPropertyStore,
-    Windows::Win32::System::PropertiesSystem::IPropertyStoreCapabilities
+    Windows::Win32::UI::Shell::PropertiesSystem::IInitializeWithStream,
+    Windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore,
+    Windows::Win32::UI::Shell::PropertiesSystem::IPropertyStoreCapabilities
 )]
 #[derive(Default)]
 pub struct JXLPropertyStore {
@@ -35,14 +35,14 @@ impl JXLPropertyStore {
         &self,
         pstream: &Option<IStream>,
         _grfmode: u32,
-    ) -> windows::runtime::Result<()> {
+    ) -> windows::core::Result<()> {
         let stream = WinStream::from(pstream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
         let mut decoder = Decoder::new();
         decoder.no_full_image = true;
         let result = decoder.decode_buffer(reader).map_err(|err| {
-            windows::runtime::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str())
+            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
 
         PSCreateMemoryPropertyStore(&IPropertyStoreCache::IID, std::mem::transmute(&self.props))?;
@@ -71,10 +71,10 @@ impl JXLPropertyStore {
         // XXX: https://github.com/microsoft/windows-rs/issues/1288
         unsafe fn InitPropVariantFromStringVectorWrapped<
             'a,
-            Param0: windows::runtime::IntoParam<'a, PWSTR>,
+            Param0: windows::core::IntoParam<'a, PWSTR>,
         >(
             pwstr: Param0,
-        ) -> ::windows::runtime::Result<PROPVARIANT> {
+        ) -> ::windows::core::Result<PROPVARIANT> {
             InitPropVariantFromStringVector(&pwstr.into_param().abi(), 1)
         }
         let variant = InitPropVariantFromStringVectorWrapped(format!(
@@ -90,29 +90,26 @@ impl JXLPropertyStore {
         Ok(())
     }
 
-    fn get_props(&self) -> windows::runtime::Result<&IPropertyStoreCache> {
+    fn get_props(&self) -> windows::core::Result<&IPropertyStoreCache> {
         if self.props.is_none() {
-            return Err(windows::runtime::Error::new(
+            return Err(windows::core::Error::new(
                 WINCODEC_ERR_NOTINITIALIZED,
-                "Property store not initialized",
+                "Property store not initialized".into(),
             ));
         }
 
         Ok(self.props.as_ref().unwrap())
     }
 
-    pub unsafe fn GetCount(&self) -> windows::runtime::Result<u32> {
+    pub unsafe fn GetCount(&self) -> windows::core::Result<u32> {
         self.get_props()?.GetCount()
     }
 
-    pub unsafe fn GetAt(&self, iprop: u32) -> windows::runtime::Result<PROPERTYKEY> {
+    pub unsafe fn GetAt(&self, iprop: u32) -> windows::core::Result<PROPERTYKEY> {
         self.get_props()?.GetAt(iprop)
     }
 
-    pub unsafe fn GetValue(
-        &self,
-        key: *const PROPERTYKEY,
-    ) -> windows::runtime::Result<PROPVARIANT> {
+    pub unsafe fn GetValue(&self, key: *const PROPERTYKEY) -> windows::core::Result<PROPVARIANT> {
         self.get_props()?.GetValue(key)
     }
 
@@ -120,27 +117,24 @@ impl JXLPropertyStore {
         &self,
         _key: *const PROPERTYKEY,
         _propvar: *const PROPVARIANT,
-    ) -> windows::runtime::Result<()> {
-        Err(windows::runtime::Error::new(
+    ) -> windows::core::Result<()> {
+        Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported",
+            "Setter not supported".into(),
         ))
     }
 
-    pub unsafe fn Commit(&self) -> windows::runtime::Result<()> {
-        Err(windows::runtime::Error::new(
+    pub unsafe fn Commit(&self) -> windows::core::Result<()> {
+        Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported",
+            "Setter not supported".into(),
         ))
     }
 
-    pub unsafe fn IsPropertyWritable(
-        &self,
-        _key: *const PROPERTYKEY,
-    ) -> windows::runtime::Result<()> {
-        Err(windows::runtime::Error::new(
+    pub unsafe fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
+        Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported",
+            "Setter not supported".into(),
         ))
     }
 }

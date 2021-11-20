@@ -6,7 +6,7 @@ use crate::{
     JXLWICBitmapDecoder,
 };
 use windows as Windows;
-use windows::runtime::{implement, IUnknown, Interface, GUID, HRESULT};
+use windows::core::{implement, IUnknown, Interface, GUID, HRESULT};
 use windows::Win32::{
     Foundation::*, System::LibraryLoader::GetModuleFileNameW,
     System::SystemServices::DLL_PROCESS_ATTACH,
@@ -42,9 +42,9 @@ struct ClassFactory {}
 impl ClassFactory {
     pub unsafe fn CreateInstance(
         &self,
-        outer: &Option<windows::runtime::IUnknown>,
+        outer: &Option<windows::core::IUnknown>,
         iid: *const GUID,
-        object: *mut windows::runtime::RawPtr,
+        object: *mut windows::core::RawPtr,
     ) -> HRESULT {
         if outer.is_some() {
             return CLASS_E_NOAGGREGATION;
@@ -54,7 +54,7 @@ impl ClassFactory {
                 let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
                 unknown.query(iid, object)
             }
-            windows::Win32::System::PropertiesSystem::IPropertyStore::IID => {
+            windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
                 let unknown: IUnknown = JXLPropertyStore::default().into();
                 unknown.query(iid, object)
             }
@@ -64,7 +64,7 @@ impl ClassFactory {
             }
         }
     }
-    pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::runtime::Result<()> {
+    pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::core::Result<()> {
         E_NOTIMPL.ok()
     }
 }
@@ -128,7 +128,7 @@ pub extern "stdcall" fn DllMain(
 pub unsafe extern "system" fn DllGetClassObject(
     rclsid: *const GUID,
     riid: *const GUID,
-    pout: *mut windows::runtime::RawPtr,
+    pout: *mut windows::core::RawPtr,
 ) -> HRESULT {
     // Sets up logging to the Cargo.toml directory for debug purposes.
     #[cfg(debug_assertions)]

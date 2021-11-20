@@ -1,4 +1,4 @@
-use windows::runtime::Interface;
+use windows::core::Interface;
 use winreg::enums::*;
 use winreg::types::ToRegValue;
 use winreg::RegKey;
@@ -18,10 +18,7 @@ const CONTENT_TYPE_VALUE: &str = "image/jxl";
 const PERCEIVED_TYPE_KEY: &str = "PerceivedType";
 const PERCEIVED_TYPE_VALUE: &str = "image";
 
-fn register_clsid_base(
-    module_path: &str,
-    clsid: &windows::runtime::GUID,
-) -> std::io::Result<RegKey> {
+fn register_clsid_base(module_path: &str, clsid: &windows::core::GUID) -> std::io::Result<RegKey> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     let clsid_key = hkcr.open_subkey("CLSID")?;
     let (key, _) = clsid_key.create_subkey(&guid_to_string(clsid))?;
