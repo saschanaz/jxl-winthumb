@@ -6,7 +6,7 @@ Now with WIC decoding support, which means you can use Windows Photo Viewer or a
 
 ## How to install
 
-0. Install [Microsoft Visual C++ Redistributable for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2019) if it's not already installed.
+0. Install [Microsoft Visual C++ Redistributable for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2022) if it's not already installed.
 1. Download the latest dll file from the [releases](https://github.com/saschanaz/jxl-winthumb/releases) page.
 2. Open a terminal window as administrator
 3. Move to your download directory
