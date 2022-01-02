@@ -103,12 +103,14 @@ fn unregister_clsid() {
     hkcr.delete_subkey_all(format!(
         "CLSID\\{}",
         &guid_to_string(&JXLWICBitmapDecoder::CLSID)
-    )).ok();
+    ))
+    .ok();
 
     hkcr.delete_subkey_all(format!(
         "CLSID\\{{7ED96837-96F0-4812-B211-F13C24117ED3}}\\Instance\\{}",
         &guid_to_string(&JXLWICBitmapDecoder::CLSID)
-    )).ok();
+    ))
+    .ok();
 }
 
 fn create_expand_sz(value: &str) -> RegValue {
@@ -198,7 +200,8 @@ fn unregister_provider() -> std::io::Result<()> {
     )?;
 
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-    hkcr.delete_subkey_all(format!("{}\\OpenWithProgids\\{}", EXT, PROGID)).ok();
+    hkcr.delete_subkey_all(format!("{}\\OpenWithProgids\\{}", EXT, PROGID))
+        .ok();
 
     delete_default_if_same(
         &format!(
@@ -208,8 +211,10 @@ fn unregister_provider() -> std::io::Result<()> {
         ),
         "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}",
     )?;
-    hkcr.delete_subkey_all(format!("{}\\OpenWithList", EXT)).ok();
-    hkcr.delete_subkey_all(format!("SystemFileAssociations\\{}\\OpenWithList", EXT)).ok();
+    hkcr.delete_subkey_all(format!("{}\\OpenWithList", EXT))
+        .ok();
+    hkcr.delete_subkey_all(format!("SystemFileAssociations\\{}\\OpenWithList", EXT))
+        .ok();
 
     hkcr.delete_subkey_all(PROGID).ok();
 
