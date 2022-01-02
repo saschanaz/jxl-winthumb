@@ -202,20 +202,6 @@ fn unregister_provider() -> std::io::Result<()> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     hkcr.delete_subkey_all(format!("{}\\OpenWithProgids\\{}", EXT, PROGID))
         .ok();
-
-    delete_default_if_same(
-        &format!(
-            "{}\\ShellEx\\{{{:?}}}",
-            EXT,
-            windows::Win32::UI::Shell::IThumbnailProvider::IID
-        ),
-        "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}",
-    )?;
-    hkcr.delete_subkey_all(format!("{}\\OpenWithList", EXT))
-        .ok();
-    hkcr.delete_subkey_all(format!("SystemFileAssociations\\{}\\OpenWithList", EXT))
-        .ok();
-
     hkcr.delete_subkey_all(PROGID).ok();
 
     Ok(())
