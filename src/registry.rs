@@ -171,7 +171,8 @@ fn register_provider() -> std::io::Result<()> {
 
     // Integration with the Windows Thumbnail Cache
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-thumbnail-cache
-    shell_ex
+    let (system_shell_ex, _) = system_ext_key.create_subkey("ShellEx")?;
+    system_shell_ex
         .create_subkey(&guid_to_string(
             &windows::Win32::UI::Shell::IThumbnailProvider::IID,
         ))?
