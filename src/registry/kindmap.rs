@@ -10,8 +10,7 @@ fn open_kindmap_key() -> std::io::Result<RegKey> {
 }
 
 pub fn register_explorer_kind() -> std::io::Result<()> {
-    open_kindmap_key()?.set_value(".jxl", &"picture")?;
-    Ok(())
+    open_kindmap_key()?.set_value(".jxl", &"picture")
 }
 
 pub fn unregister_explorer_kind() -> std::io::Result<()> {

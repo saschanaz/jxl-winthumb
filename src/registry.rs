@@ -97,19 +97,18 @@ fn register_clsid(module_path: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-fn unregister_clsid() -> std::io::Result<()> {
+fn unregister_clsid() {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
 
-    let clsid_key = hkcr.open_subkey("CLSID")?;
-    clsid_key.delete_subkey_all(&guid_to_string(&JXLWICBitmapDecoder::CLSID))?;
+    hkcr.delete_subkey_all(format!(
+        "CLSID\\{}",
+        &guid_to_string(&JXLWICBitmapDecoder::CLSID)
+    )).ok();
 
-    let instances_key = clsid_key
-        .open_subkey("{7ED96837-96F0-4812-B211-F13C24117ED3}")?
-        .open_subkey("Instance")?;
-
-    instances_key.delete_subkey_all(&guid_to_string(&JXLWICBitmapDecoder::CLSID))?;
-
-    Ok(())
+    hkcr.delete_subkey_all(format!(
+        "CLSID\\{{7ED96837-96F0-4812-B211-F13C24117ED3}}\\Instance\\{}",
+        &guid_to_string(&JXLWICBitmapDecoder::CLSID)
+    )).ok();
 }
 
 fn create_expand_sz(value: &str) -> RegValue {
@@ -139,15 +138,8 @@ fn register_provider() -> std::io::Result<()> {
     ext_key.set_value(PERCEIVED_TYPE_KEY, &PERCEIVED_TYPE_VALUE)?;
 
     ext_key.create_subkey(format!("OpenWithProgids\\{}", PROGID))?;
-    ext_key.create_subkey("OpenWithList\\PhotoViewer.dll")?;
-    let (shell_ex, _) = ext_key.create_subkey("ShellEx")?;
-    shell_ex
-        .create_subkey("ContextMenuHandlers\\ShellImagePreview")?
-        .0
-        .set_value("", &"{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}")?;
 
     let (system_ext_key, _) = hkcr.create_subkey(format!("SystemFileAssociations\\{}", EXT))?;
-    system_ext_key.create_subkey("OpenWithList\\PhotoViewer.dll")?;
     system_ext_key
         .create_subkey("ShellEx\\ContextMenuHandlers\\ShellImagePreview")?
         .0
@@ -182,32 +174,44 @@ fn register_provider() -> std::io::Result<()> {
     Ok(())
 }
 
-fn unregister_provider() -> std::io::Result<()> {
+fn delete_default_if_same(subkey_path: &str, value: &str) -> std::io::Result<()> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-    if let Ok(itp_clsid) = hkcr.open_subkey_with_flags(
-        format!(
+    if let Ok(subkey) = hkcr.open_subkey_with_flags(subkey_path, KEY_READ | KEY_WRITE) {
+        let rv: Result<String, _> = subkey.get_value("");
+        if let Ok(val) = rv {
+            if val == value {
+                subkey.delete_value("")?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn unregister_provider() -> std::io::Result<()> {
+    delete_default_if_same(
+        &format!(
+            "SystemFileAssociations\\{}\\ShellEx\\{{{:?}}}",
+            EXT,
+            windows::Win32::UI::Shell::IThumbnailProvider::IID
+        ),
+        "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}",
+    )?;
+
+    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+    hkcr.delete_subkey_all(format!("{}\\OpenWithProgids\\{}", EXT, PROGID)).ok();
+
+    delete_default_if_same(
+        &format!(
             "{}\\ShellEx\\{{{:?}}}",
             EXT,
             windows::Win32::UI::Shell::IThumbnailProvider::IID
         ),
-        KEY_READ | KEY_WRITE,
-    ) {
-        let rv: Result<String, _> = itp_clsid.get_value("");
-        if let Ok(val) = rv {
-            if val == "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}" {
-                itp_clsid.delete_value("")?;
-            }
-        }
-    }
+        "{C7657C4A-9F68-40fa-A4DF-96BC08EB3551}",
+    )?;
+    hkcr.delete_subkey_all(format!("{}\\OpenWithList", EXT)).ok();
+    hkcr.delete_subkey_all(format!("SystemFileAssociations\\{}\\OpenWithList", EXT)).ok();
 
-    hkcr.delete_subkey_all(format!("{}\\OpenWithProgids\\{}", EXT, PROGID))?;
-    hkcr.delete_subkey_all(format!("{}\\OpenWithList\\PhotoViewer.dll", EXT))?;
-    hkcr.delete_subkey_all(format!(
-        "SystemFileAssociations\\{}\\OpenWithList\\PhotoViewer.dll",
-        EXT
-    ))?;
-
-    hkcr.delete_subkey_all(PROGID)?;
+    hkcr.delete_subkey_all(PROGID).ok();
 
     Ok(())
 }
@@ -221,9 +225,9 @@ pub fn register(module_path: &str) -> std::io::Result<()> {
 }
 
 pub fn unregister() -> std::io::Result<()> {
-    unregister_clsid()?;
+    unregister_clsid();
     unregister_provider()?;
-    kindmap::unregister_explorer_kind()?;
-    property_handler::unregister_property_handler()?;
+    kindmap::unregister_explorer_kind().ok();
+    property_handler::unregister_property_handler().ok();
     Ok(())
 }
