@@ -16,6 +16,10 @@ Now with WIC decoding support, which means you can use Windows Photo Viewer or a
 
 Please read [the requirements](https://github.com/saschanaz/jxl-rs/tree/main/libjxl-src) to build the libjxl dependency, or take a look at [the CI configuration](https://github.com/saschanaz/jxl-winthumb/blob/main/.github/workflows/ci.yml).
 
+### Rust Nightly
+
+Currently Rust Nightly toolchain is required because of [windows-rs dependency](https://github.com/microsoft/windows-rs/issues/1408#issuecomment-1021692345).
+
 ## Helpful resources
 
 * [Integration with Windows Photo Gallery and Windows Explorer](https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries)

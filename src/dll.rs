@@ -8,11 +8,11 @@ use crate::{
 use windows as Windows;
 use windows::core::{implement, IUnknown, Interface, GUID, HRESULT};
 use windows::Win32::{
-    Foundation::*, System::LibraryLoader::GetModuleFileNameW,
+    Foundation::*, System::Com::IClassFactory_Impl, System::LibraryLoader::GetModuleFileNameW,
     System::SystemServices::DLL_PROCESS_ATTACH,
 };
 
-static mut DLL_INSTANCE: HINSTANCE = HINSTANCE { 0: 0 };
+static mut DLL_INSTANCE: HINSTANCE = HINSTANCE(0);
 
 fn get_module_path(instance: HINSTANCE) -> Result<String, HRESULT> {
     let mut path: Vec<u16> = Vec::new();
@@ -38,33 +38,34 @@ fn get_module_path(instance: HINSTANCE) -> Result<String, HRESULT> {
 #[implement(Windows::Win32::System::Com::IClassFactory)]
 struct ClassFactory {}
 
-#[allow(non_snake_case)]
-impl ClassFactory {
-    pub unsafe fn CreateInstance(
-        &self,
+impl IClassFactory_Impl for ClassFactory {
+    fn CreateInstance(
+        &mut self,
         outer: &Option<windows::core::IUnknown>,
         iid: *const GUID,
         object: *mut windows::core::RawPtr,
-    ) -> HRESULT {
+    ) -> windows::core::Result<()> {
         if outer.is_some() {
-            return CLASS_E_NOAGGREGATION;
+            return CLASS_E_NOAGGREGATION.ok();
         }
-        match *iid {
-            windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
-                let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
-                unknown.query(iid, object)
-            }
-            windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
-                let unknown: IUnknown = JXLPropertyStore::default().into();
-                unknown.query(iid, object)
-            }
-            _ => {
-                log::trace!("Unknown IID: {:?}", *iid);
-                E_NOINTERFACE
+        unsafe {
+            match *iid {
+                windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
+                    let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
+                    unknown.query(&*iid, object).ok()
+                }
+                windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
+                    let unknown: IUnknown = JXLPropertyStore::default().into();
+                    unknown.query(&*iid, object).ok()
+                }
+                _ => {
+                    log::trace!("Unknown IID: {:?}", *iid);
+                    E_NOINTERFACE.ok()
+                }
             }
         }
     }
-    pub unsafe fn LockServer(&self, _flock: BOOL) -> windows::core::Result<()> {
+    fn LockServer(&mut self, _flock: BOOL) -> windows::core::Result<()> {
         E_NOTIMPL.ok()
     }
 }
@@ -149,7 +150,7 @@ pub unsafe extern "system" fn DllGetClassObject(
     let unknown: IUnknown = factory.into();
 
     match *rclsid {
-        JXLWICBitmapDecoder::CLSID | JXLPropertyStore::CLSID => unknown.query(riid, pout),
+        JXLWICBitmapDecoder::CLSID | JXLPropertyStore::CLSID => unknown.query(&*riid, pout),
         _ => CLASS_E_CLASSNOTAVAILABLE,
     }
 }

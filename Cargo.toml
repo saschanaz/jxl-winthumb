@@ -16,10 +16,10 @@ kagamijxl = "0.3.3"
 winreg = "0.10.1"
 
 [dependencies.windows]
-version = "0.28.0"
+version = "0.32.0"
 features = [
   "alloc",
-  "build",
+  "implement",
   "Win32_Graphics_Imaging",
   "Win32_Foundation",
   "Win32_System_Com",
