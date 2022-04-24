@@ -1,7 +1,7 @@
 use std::io::BufReader;
 
 use windows as Windows;
-use windows::core::{implement, Interface, GUID};
+use windows::core::{implement, Interface, GUID, PCWSTR, PWSTR};
 use windows::Win32::{
     Foundation::*,
     System::Com::IStream,
@@ -42,11 +42,7 @@ impl JXLPropertyStore {
 }
 
 impl IInitializeWithStream_Impl for JXLPropertyStore {
-    fn Initialize(
-        &mut self,
-        pstream: &Option<IStream>,
-        _grfmode: u32,
-    ) -> windows::core::Result<()> {
+    fn Initialize(&self, pstream: &Option<IStream>, _grfmode: u32) -> windows::core::Result<()> {
         let stream = WinStream::from(pstream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
@@ -71,14 +67,14 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let PSGUID_IMAGESUMMARYINFORMATION =
             GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&result.basic_info.xsize, 1)? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[result.basic_info.xsize])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 3,
         };
         unsafe { props.SetValueAndState(&propkey, &variant, PSC_READONLY)? };
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&result.basic_info.ysize, 1)? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[result.basic_info.ysize])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 4,
@@ -89,11 +85,12 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         #[allow(non_snake_case)]
         unsafe fn InitPropVariantFromStringVectorWrapped<
             'a,
-            Param0: windows::core::IntoParam<'a, PWSTR>,
+            Param0: windows::core::IntoParam<'a, PCWSTR>,
         >(
-            pwstr: Param0,
+            pcwstr: Param0,
         ) -> ::windows::core::Result<PROPVARIANT> {
-            InitPropVariantFromStringVector(&pwstr.into_param().abi(), 1)
+            let pcwstr = pcwstr.into_param().abi();
+            InitPropVariantFromStringVector(&[PWSTR(pcwstr.0 as *mut _)])
         }
         let variant = unsafe {
             InitPropVariantFromStringVectorWrapped(format!(
@@ -112,20 +109,20 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
 }
 
 impl IPropertyStore_Impl for JXLPropertyStore {
-    fn GetCount(&mut self) -> windows::core::Result<u32> {
+    fn GetCount(&self) -> windows::core::Result<u32> {
         unsafe { self.get_props()?.GetCount() }
     }
 
-    fn GetAt(&mut self, iprop: u32) -> windows::core::Result<PROPERTYKEY> {
+    fn GetAt(&self, iprop: u32) -> windows::core::Result<PROPERTYKEY> {
         unsafe { self.get_props()?.GetAt(iprop) }
     }
 
-    fn GetValue(&mut self, key: *const PROPERTYKEY) -> windows::core::Result<PROPVARIANT> {
+    fn GetValue(&self, key: *const PROPERTYKEY) -> windows::core::Result<PROPVARIANT> {
         unsafe { self.get_props()?.GetValue(key) }
     }
 
     fn SetValue(
-        &mut self,
+        &self,
         _key: *const PROPERTYKEY,
         _propvar: *const PROPVARIANT,
     ) -> windows::core::Result<()> {
@@ -135,7 +132,7 @@ impl IPropertyStore_Impl for JXLPropertyStore {
         ))
     }
 
-    fn Commit(&mut self) -> windows::core::Result<()> {
+    fn Commit(&self) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
             "Setter not supported".into(),
@@ -144,7 +141,7 @@ impl IPropertyStore_Impl for JXLPropertyStore {
 }
 
 impl IPropertyStoreCapabilities_Impl for JXLPropertyStore {
-    fn IsPropertyWritable(&mut self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
+    fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
             "Setter not supported".into(),

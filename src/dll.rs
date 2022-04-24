@@ -15,24 +15,9 @@ use windows::Win32::{
 static mut DLL_INSTANCE: HINSTANCE = HINSTANCE(0);
 
 fn get_module_path(instance: HINSTANCE) -> Result<String, HRESULT> {
-    let mut path: Vec<u16> = Vec::new();
-    path.reserve(1024);
-    let path_len = unsafe {
-        GetModuleFileNameW(
-            instance,
-            std::mem::transmute(path.as_mut_ptr()),
-            path.capacity() as u32,
-        )
-    };
-
-    let path_len = path_len as usize;
-    if path_len == 0 || path_len >= path.capacity() {
-        return Err(E_FAIL);
-    }
-    unsafe {
-        path.set_len(path_len + 1);
-    }
-    String::from_utf16(&path).map_err(|_| E_FAIL)
+    let mut path = [0u16; MAX_PATH as usize];
+    let path_len = unsafe { GetModuleFileNameW(instance, &mut path) } as usize;
+    String::from_utf16(&path[0..path_len]).map_err(|_| E_FAIL)
 }
 
 #[implement(Windows::Win32::System::Com::IClassFactory)]
@@ -40,7 +25,7 @@ struct ClassFactory {}
 
 impl IClassFactory_Impl for ClassFactory {
     fn CreateInstance(
-        &mut self,
+        &self,
         outer: &Option<windows::core::IUnknown>,
         iid: *const GUID,
         object: *mut windows::core::RawPtr,
@@ -65,7 +50,7 @@ impl IClassFactory_Impl for ClassFactory {
             }
         }
     }
-    fn LockServer(&mut self, _flock: BOOL) -> windows::core::Result<()> {
+    fn LockServer(&self, _flock: BOOL) -> windows::core::Result<()> {
         E_NOTIMPL.ok()
     }
 }
