@@ -19,6 +19,7 @@ impl Read for WinStream {
             self.stream
                 .Read(buf.as_mut_ptr() as _, buf.len() as u32, &mut bytes_read)
         }
+        .ok()
         .map_err(|err| {
             std::io::Error::new(
                 ErrorKind::Other,
