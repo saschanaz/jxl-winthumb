@@ -37,11 +37,11 @@ impl IClassFactory_Impl for ClassFactory {
             match *iid {
                 windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
                     let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
-                    unknown.query(&*iid, object).ok()
+                    unknown.query(&*iid, object as _).ok()
                 }
                 windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
                     let unknown: IUnknown = JXLPropertyStore::default().into();
-                    unknown.query(&*iid, object).ok()
+                    unknown.query(&*iid, object as _).ok()
                 }
                 _ => {
                     log::trace!("Unknown IID: {:?}", *iid);
@@ -114,7 +114,7 @@ pub extern "stdcall" fn DllMain(
 pub unsafe extern "system" fn DllGetClassObject(
     rclsid: *const GUID,
     riid: *const GUID,
-    pout: *mut windows::core::RawPtr,
+    pout: *mut *const core::ffi::c_void,
 ) -> HRESULT {
     // Sets up logging to the Cargo.toml directory for debug purposes.
     #[cfg(debug_assertions)]

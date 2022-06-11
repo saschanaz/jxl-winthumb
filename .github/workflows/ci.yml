@@ -18,9 +18,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          # windows-rs 0.31+ requires Nightly to use #[implement].
-          # https://github.com/microsoft/windows-rs/issues/1408#issuecomment-1021692345
-          toolchain: nightly
+          toolchain: stable
           override: true
 
       - name: Install Ninja

@@ -1,6 +1,6 @@
 [package]
 name = "jxl-winthumb"
-version = "0.1.18"
+version = "0.1.19"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2018"
 
@@ -11,12 +11,12 @@ crate-type = ["cdylib"]
 
 [dependencies]
 simple-logging = "2.0.2"
-log = "0.4.16"
+log = "0.4.17"
 kagamijxl = "0.3.3"
 winreg = "0.10.1"
 
 [dependencies.windows]
-version = "0.35.0"
+version = "0.37.0"
 features = [
   "alloc",
   "implement",
