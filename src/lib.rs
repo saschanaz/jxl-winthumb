@@ -2,7 +2,7 @@
 // https://github.com/microsoft/windows-rs/issues/1506
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
-use kagamijxl::{DecodeProgress, Decoder};
+use jxl_oxide::{FrameBuffer, JxlImage, PixelFormat};
 use std::{cell::RefCell, io::BufReader, rc::Rc};
 use windows::core::{implement, Interface, GUID};
 
@@ -22,10 +22,19 @@ mod guid;
 
 mod properties;
 
+type JxlImageFromWinStream = JxlImage<BufReader<WinStream>>;
+
+pub struct DecodedResult {
+    frames: Vec<Rc<FrameBuffer>>,
+    pixel_format: PixelFormat,
+    width: u32,
+    height: u32,
+}
+
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
 #[derive(Default)]
 pub struct JXLWICBitmapDecoder {
-    decoded: RefCell<Option<Rc<RefCell<DecodeProgress>>>>,
+    decoded: RefCell<Option<DecodedResult>>,
 }
 
 impl JXLWICBitmapDecoder {
@@ -50,12 +59,41 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         let stream = WinStream::from(pistream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let decoder = Decoder::new();
-
-        let result = decoder.decode_buffer(reader).map_err(|err| {
+        let mut image = JxlImageFromWinStream::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
-        self.decoded.replace(Some(Rc::new(RefCell::new(result))));
+        let mut renderer = image.renderer();
+
+        let mut frames: Vec<Rc<FrameBuffer>> = Vec::new();
+
+        let mut load_all = || -> jxl_oxide::Result<usize> {
+            loop {
+                let load_result = renderer.render_next_frame()?;
+                match load_result {
+                    jxl_oxide::RenderResult::NoMoreFrames => {
+                        return Ok(renderer.num_loaded_keyframes())
+                    }
+                    jxl_oxide::RenderResult::NeedMoreData => {
+                        return Err(Box::new(std::io::Error::from(
+                            std::io::ErrorKind::UnexpectedEof,
+                        )))
+                    }
+                    jxl_oxide::RenderResult::Done(render) => {
+                        frames.push(Rc::new(render.image()));
+                    }
+                }
+            }
+        };
+        load_all().map_err(|err| {
+            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
+        })?;
+
+        self.decoded.replace(Some(DecodedResult {
+            frames,
+            pixel_format: renderer.pixel_format(),
+            width: renderer.image_header().size.width,
+            height: renderer.image_header().size.height,
+        }));
 
         Ok(())
     }
@@ -78,6 +116,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn CopyPalette(&self, _pipalette: &Option<IWICPalette>) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapDecoder::CopyPalette");
+        // TODO
         WINCODEC_ERR_PALETTEUNAVAILABLE.ok()
     }
 
@@ -93,12 +132,26 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn GetColorContexts(
         &self,
-        _ccount: u32,
-        _ppicolorcontexts: *mut Option<IWICColorContext>,
-        _pcactualcount: *mut u32,
+        ccount: u32,
+        ppicolorcontexts: *mut Option<IWICColorContext>,
+        pcactualcount: *mut u32,
     ) -> windows::core::Result<()> {
-        log::trace!("JXLWICBitmapDecoder::GetColorContexts");
-        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
+        log::trace!(
+            "JXLWICBitmapDecoder::GetColorContexts {} {:?} {:?}",
+            ccount,
+            ppicolorcontexts,
+            pcactualcount
+        );
+        // TODO: Proper color context
+        unsafe {
+            if !ppicolorcontexts.is_null() && ccount == 1 {
+                *ppicolorcontexts = Some(JXLWICColorContext {}.into());
+            }
+            if !pcactualcount.is_null() {
+                *pcactualcount = 1;
+            }
+        }
+        Ok(())
     }
 
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
@@ -107,45 +160,55 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
     }
 
     fn GetFrameCount(&self) -> windows::core::Result<u32> {
-        if self.decoded.borrow().is_none() {
+        let decoded_ref = self.decoded.borrow();
+        if decoded_ref.is_none() {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
+        let frame_count = decoded_ref.as_ref().unwrap().frames.len();
 
-        let frame_count = self
-            .decoded
-            .borrow()
-            .as_ref()
-            .unwrap()
-            .borrow()
-            .frames
-            .len();
         log::trace!("JXLWICBitmapDecoder::GetFrameCount: {}", frame_count);
         Ok(frame_count as u32)
     }
 
     fn GetFrame(&self, index: u32) -> windows::core::Result<IWICBitmapFrameDecode> {
-        if self.decoded.borrow().is_none() {
+        let decoded_ref = self.decoded.borrow();
+        if decoded_ref.is_none() {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
 
-        let basic_info = self.decoded.borrow().as_ref().unwrap().borrow().basic_info;
-        log::trace!("[{}]: {:?}", index, basic_info);
+        let decoded = decoded_ref.as_ref().unwrap();
+        log::trace!("[{}/{}]", index, decoded.frames.len());
 
-        let frame_decode =
-            JXLWICBitmapFrameDecode::new(self.decoded.borrow().to_owned().unwrap(), index as usize);
+        if index >= decoded.frames.len() as u32 {
+            return Err(WINCODEC_ERR_FRAMEMISSING.ok().unwrap_err());
+        }
+
+        let frame_decode = JXLWICBitmapFrameDecode::new(
+            decoded.frames[index as usize].clone(),
+            decoded.pixel_format,
+            decoded.width,
+            decoded.height,
+        );
         Ok(frame_decode.into())
     }
 }
 
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapFrameDecode)]
 pub struct JXLWICBitmapFrameDecode {
-    decoded: Rc<RefCell<DecodeProgress>>,
-    index: usize,
+    frame: Rc<FrameBuffer>,
+    pixel_format: PixelFormat,
+    width: u32,
+    height: u32,
 }
 
 impl JXLWICBitmapFrameDecode {
-    pub fn new(decoded: Rc<RefCell<DecodeProgress>>, index: usize) -> Self {
-        Self { decoded, index }
+    pub fn new(frame: Rc<FrameBuffer>, pixel_format: PixelFormat, width: u32, height: u32) -> Self {
+        Self {
+            frame,
+            pixel_format,
+            width,
+            height,
+        }
     }
 }
 
@@ -155,16 +218,30 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
     fn GetSize(&self, puiwidth: *mut u32, puiheight: *mut u32) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapFrameDecode::GetSize");
         unsafe {
-            *puiwidth = self.decoded.borrow().basic_info.xsize;
-            *puiheight = self.decoded.borrow().basic_info.ysize;
+            *puiwidth = self.width;
+            *puiheight = self.height;
         }
         Ok(())
     }
 
     fn GetPixelFormat(&self) -> windows::core::Result<GUID> {
         log::trace!("JXLWICBitmapFrameDecode::GetPixelFormat");
-        // TODO: Support HDR
-        Ok(GUID_WICPixelFormat32bppRGBA)
+        // TODO: Support all formats
+        match self.pixel_format {
+            PixelFormat::Gray => Ok(GUID_WICPixelFormat32bppGrayFloat),
+            PixelFormat::Graya => Err(windows::core::Error::new(
+                WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT,
+                "Gray alpha image is currently not supported".into(),
+            )),
+            PixelFormat::Rgb => Ok(GUID_WICPixelFormat96bppRGBFloat),
+            PixelFormat::Rgba => Ok(GUID_WICPixelFormat128bppRGBAFloat),
+            jxl_oxide::PixelFormat::Cmyk | jxl_oxide::PixelFormat::Cmyka => {
+                Err(windows::core::Error::new(
+                    WINCODEC_ERR_BADIMAGE,
+                    "Cmyk is currently not supported".into(),
+                ))
+            }
+        }
     }
 
     fn GetResolution(&self, pdpix: *mut f64, pdpiy: *mut f64) -> windows::core::Result<()> {
@@ -198,17 +275,19 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
         let prc = unsafe { prc.as_ref().unwrap() };
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
 
-        let basic_info = &self.decoded.borrow().basic_info;
-        let data = &self.decoded.borrow().frames[self.index].data;
+        let channels = self.frame.channels();
 
         for y in prc.Y..(prc.Y + prc.Height) {
-            let src_offset = basic_info.xsize as i32 * 4 * y;
+            let src_offset = self.width as i32 * channels as i32 * y;
             let dst_offset = prc.Width * 4 * (y - prc.Y);
             unsafe {
                 std::ptr::copy_nonoverlapping(
-                    data.as_ptr().offset((src_offset + prc.X) as isize),
-                    pbbuffer.offset(dst_offset as isize),
-                    (prc.Width as usize) * 4,
+                    self.frame
+                        .buf()
+                        .as_ptr()
+                        .offset((src_offset + prc.X) as isize),
+                    (pbbuffer as *mut f32).offset(dst_offset as isize),
+                    (prc.Width as usize) * channels,
                 );
             }
         }
@@ -225,13 +304,23 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
 
     fn GetColorContexts(
         &self,
-        _ccount: u32,
-        _ppicolorcontexts: *mut Option<IWICColorContext>,
+        ccount: u32,
+        ppicolorcontexts: *mut Option<IWICColorContext>,
         pcactualcount: *mut u32,
     ) -> windows::core::Result<()> {
-        log::trace!("JXLWICBitmapFrameDecode::GetColorContexts");
+        log::trace!(
+            "JXLWICBitmapFrameDecode::GetColorContexts {} {:?} {:?}",
+            ccount,
+            ppicolorcontexts,
+            pcactualcount
+        );
         unsafe {
-            *pcactualcount = 0;
+            if !ppicolorcontexts.is_null() && ccount == 1 {
+                *ppicolorcontexts = Some(JXLWICColorContext {}.into());
+            }
+            if !pcactualcount.is_null() {
+                *pcactualcount = 1;
+            }
         }
         Ok(())
     }
@@ -239,5 +328,47 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
         log::trace!("JXLWICBitmapFrameDecode::GetThumbnail");
         Err(WINCODEC_ERR_CODECNOTHUMBNAIL.ok().unwrap_err())
+    }
+}
+
+#[implement(Windows::Win32::Graphics::Imaging::IWICColorContext)]
+pub struct JXLWICColorContext {}
+
+impl IWICColorContext_Impl for JXLWICColorContext {
+    fn InitializeFromFilename(
+        &self,
+        _wzfilename: &::windows::core::PCWSTR,
+    ) -> ::windows::core::Result<()> {
+        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
+    }
+
+    fn InitializeFromMemory(
+        &self,
+        _pbbuffer: *const u8,
+        _cbbuffersize: u32,
+    ) -> ::windows::core::Result<()> {
+        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
+    }
+
+    fn InitializeFromExifColorSpace(&self, _value: u32) -> ::windows::core::Result<()> {
+        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
+    }
+
+    fn GetType(&self) -> ::windows::core::Result<WICColorContextType> {
+        Ok(WICColorContextExifColorSpace)
+    }
+
+    fn GetProfileBytes(
+        &self,
+        _cbbuffer: u32,
+        _pbbuffer: *mut u8,
+        _pcbactual: *mut u32,
+    ) -> ::windows::core::Result<()> {
+        // TODO: Implement this for proper ICC profile support
+        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
+    }
+
+    fn GetExifColorSpace(&self) -> ::windows::core::Result<u32> {
+        Ok(1) // sRGB
     }
 }

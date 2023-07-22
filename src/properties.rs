@@ -14,7 +14,7 @@ use windows::Win32::{
 };
 
 use crate::winstream::WinStream;
-use kagamijxl::Decoder;
+use jxl_oxide::JxlImage;
 
 #[implement(
     Windows::Win32::UI::Shell::PropertiesSystem::IInitializeWithStream,
@@ -46,11 +46,11 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let stream = WinStream::from(pstream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let mut decoder = Decoder::new();
-        decoder.no_full_image = true;
-        let result = decoder.decode_buffer(reader).map_err(|err| {
+        let decoder = JxlImage::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
+
+        let size = &decoder.image_header().size;
 
         unsafe {
             PSCreateMemoryPropertyStore(
@@ -67,14 +67,14 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let PSGUID_IMAGESUMMARYINFORMATION =
             GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[result.basic_info.xsize])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[size.width])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 3,
         };
         unsafe { props.SetValueAndState(&propkey, &variant, PSC_READONLY)? };
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[result.basic_info.ysize])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[size.height])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 4,
@@ -93,10 +93,7 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
             InitPropVariantFromStringVector(&[PWSTR(pcwstr.0 as *mut _)])
         }
         let variant = unsafe {
-            InitPropVariantFromStringVectorWrapped(format!(
-                "{} x {}",
-                result.basic_info.xsize, result.basic_info.ysize
-            ))?
+            InitPropVariantFromStringVectorWrapped(format!("{} x {}", size.width, size.height))?
         };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
