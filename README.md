@@ -1,24 +1,10 @@
 # jxl-winthumb
 
-A JPEG XL (*.jxl) thumbnail handler for Windows File Explorer.
-
-Now with WIC decoding support, which means you can use Windows Photo Viewer or any WIC-capable image viewers to view JXL files.
-
-## How to install
-
-0. Install [Microsoft Visual C++ Redistributable for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2022) if it's not already installed.
-1. Download the latest dll file from the [releases](https://github.com/saschanaz/jxl-winthumb/releases) page.
-2. Open a terminal window as administrator
-3. Move to your download directory
-4. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
+A JPEG XL (*.jxl) WIC decoder to render thumbnails on Windows File Explorer or view images on any WIC-capable image viewers.
 
 ## Build environment
 
-Please read [the requirements](https://github.com/saschanaz/jxl-rs/tree/main/libjxl-src) to build the libjxl dependency, or take a look at [the CI configuration](https://github.com/saschanaz/jxl-winthumb/blob/main/.github/workflows/ci.yml).
-
-### Rust Nightly
-
-Currently Rust Nightly toolchain is required because of [windows-rs dependency](https://github.com/microsoft/windows-rs/issues/1408#issuecomment-1021692345).
+Use the stable Rust toolchain. Current toolchain as of 23th July 2023 is 1.71.0.
 
 ## Helpful resources
 
