@@ -1,6 +1,9 @@
 #![crate_type = "dylib"]
 // https://github.com/microsoft/windows-rs/issues/1506
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
+// TODO: Update windows-rs
+#![allow(unused_must_use)]
+#![allow(non_snake_case)]
 
 use jxl_oxide::{FrameBuffer, JxlImage, PixelFormat};
 use std::{cell::RefCell, io::BufReader, rc::Rc};
