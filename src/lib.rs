@@ -327,7 +327,12 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
         );
         unsafe {
             if !ppicolorcontexts.is_null() && ccount == 1 {
-                *ppicolorcontexts = Some(JXLWICColorContext {}.into());
+                let unknown: windows::core::IUnknown = JXLWICColorContext {}.into();
+                unknown
+                    .query(&IWICColorContext::IID, ppicolorcontexts as *mut _)
+                    .ok()?;
+                // NOTE: But what's wrong with this? This later causes memory access failure.
+                // *ppicolorcontexts = Some(JXLWICColorContext {}.into());
             }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
