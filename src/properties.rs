@@ -55,7 +55,7 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         unsafe {
             PSCreateMemoryPropertyStore(
                 &IPropertyStoreCache::IID,
-                std::mem::transmute(&self.props),
+                &self.props as *const _ as *mut *mut std::ffi::c_void,
             )?
         };
 
