@@ -91,11 +91,19 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
 
+        let (width, height, _left, _top) = renderer.image_header().metadata.apply_orientation(
+            renderer.image_header().size.width,
+            renderer.image_header().size.height,
+            0,
+            0,
+            false,
+        );
+
         self.decoded.replace(Some(DecodedResult {
             frames,
             pixel_format: renderer.pixel_format(),
-            width: renderer.image_header().size.width,
-            height: renderer.image_header().size.height,
+            width,
+            height,
         }));
 
         Ok(())

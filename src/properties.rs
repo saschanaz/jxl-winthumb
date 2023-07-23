@@ -46,11 +46,18 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let stream = WinStream::from(pstream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let decoder = JxlImage::from_reader(reader).map_err(|err| {
+        let mut image = JxlImage::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
+        let renderer = image.renderer();
 
-        let size = &decoder.image_header().size;
+        let (width, height, _left, _top) = renderer.image_header().metadata.apply_orientation(
+            renderer.image_header().size.width,
+            renderer.image_header().size.height,
+            0,
+            0,
+            false,
+        );
 
         unsafe {
             PSCreateMemoryPropertyStore(
@@ -67,14 +74,14 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let PSGUID_IMAGESUMMARYINFORMATION =
             GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[size.width])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[width])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 3,
         };
         unsafe { props.SetValueAndState(&propkey, &variant, PSC_READONLY)? };
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[size.height])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(&[height])? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 4,
@@ -92,9 +99,8 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
             let pcwstr = pcwstr.into_param().abi();
             InitPropVariantFromStringVector(&[PWSTR(pcwstr.0 as *mut _)])
         }
-        let variant = unsafe {
-            InitPropVariantFromStringVectorWrapped(format!("{} x {}", size.width, size.height))?
-        };
+        let variant =
+            unsafe { InitPropVariantFromStringVectorWrapped(format!("{} x {}", width, height))? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 13,
