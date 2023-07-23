@@ -30,6 +30,7 @@ type JxlImageFromWinStream = JxlImage<BufReader<WinStream>>;
 pub struct DecodedResult {
     frames: Vec<Rc<FrameBuffer>>,
     pixel_format: PixelFormat,
+    icc: Rc<Vec<u8>>,
     width: u32,
     height: u32,
 }
@@ -102,6 +103,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         self.decoded.replace(Some(DecodedResult {
             frames,
             pixel_format: renderer.pixel_format(),
+            icc: Rc::new(renderer.rendered_icc()),
             width,
             height,
         }));
@@ -147,6 +149,12 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         ppicolorcontexts: *mut Option<IWICColorContext>,
         pcactualcount: *mut u32,
     ) -> windows::core::Result<()> {
+        let decoded_ref = self.decoded.borrow();
+        if decoded_ref.is_none() {
+            return WINCODEC_ERR_NOTINITIALIZED.ok();
+        }
+        let decoded = decoded_ref.as_ref().unwrap();
+
         log::trace!(
             "JXLWICBitmapDecoder::GetColorContexts {} {:?} {:?}",
             ccount,
@@ -156,7 +164,12 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         // TODO: Proper color context
         unsafe {
             if !ppicolorcontexts.is_null() && ccount == 1 {
-                *ppicolorcontexts = Some(JXLWICColorContext {}.into());
+                ppicolorcontexts
+                    .as_mut()
+                    .unwrap()
+                    .as_mut()
+                    .expect("There should be a color context here")
+                    .InitializeFromMemory(&decoded.icc[..])?;
             }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
@@ -197,6 +210,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         let frame_decode = JXLWICBitmapFrameDecode::new(
             decoded.frames[index as usize].clone(),
             decoded.pixel_format,
+            decoded.icc.clone(),
             decoded.width,
             decoded.height,
         );
@@ -208,15 +222,23 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 pub struct JXLWICBitmapFrameDecode {
     frame: Rc<FrameBuffer>,
     pixel_format: PixelFormat,
+    icc: Rc<Vec<u8>>,
     width: u32,
     height: u32,
 }
 
 impl JXLWICBitmapFrameDecode {
-    pub fn new(frame: Rc<FrameBuffer>, pixel_format: PixelFormat, width: u32, height: u32) -> Self {
+    pub fn new(
+        frame: Rc<FrameBuffer>,
+        pixel_format: PixelFormat,
+        icc: Rc<Vec<u8>>,
+        width: u32,
+        height: u32,
+    ) -> Self {
         Self {
             frame,
             pixel_format,
+            icc,
             width,
             height,
         }
@@ -227,7 +249,11 @@ impl JXLWICBitmapFrameDecode {
 #[allow(clippy::missing_safety_doc)]
 impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
     fn GetSize(&self, puiwidth: *mut u32, puiheight: *mut u32) -> windows::core::Result<()> {
-        log::trace!("JXLWICBitmapFrameDecode::GetSize");
+        log::trace!(
+            "JXLWICBitmapFrameDecode::GetSize {}x{}",
+            self.width,
+            self.height
+        );
         unsafe {
             *puiwidth = self.width;
             *puiheight = self.height;
@@ -327,12 +353,12 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
         );
         unsafe {
             if !ppicolorcontexts.is_null() && ccount == 1 {
-                let unknown: windows::core::IUnknown = JXLWICColorContext {}.into();
-                unknown
-                    .query(&IWICColorContext::IID, ppicolorcontexts as *mut _)
-                    .ok()?;
-                // NOTE: But what's wrong with this? This later causes memory access failure.
-                // *ppicolorcontexts = Some(JXLWICColorContext {}.into());
+                ppicolorcontexts
+                    .as_mut()
+                    .unwrap()
+                    .as_mut()
+                    .expect("There should be a color context here")
+                    .InitializeFromMemory(&self.icc[..])?;
             }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
@@ -344,47 +370,5 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
         log::trace!("JXLWICBitmapFrameDecode::GetThumbnail");
         Err(WINCODEC_ERR_CODECNOTHUMBNAIL.ok().unwrap_err())
-    }
-}
-
-#[implement(Windows::Win32::Graphics::Imaging::IWICColorContext)]
-pub struct JXLWICColorContext {}
-
-impl IWICColorContext_Impl for JXLWICColorContext {
-    fn InitializeFromFilename(
-        &self,
-        _wzfilename: &::windows::core::PCWSTR,
-    ) -> ::windows::core::Result<()> {
-        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
-    }
-
-    fn InitializeFromMemory(
-        &self,
-        _pbbuffer: *const u8,
-        _cbbuffersize: u32,
-    ) -> ::windows::core::Result<()> {
-        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
-    }
-
-    fn InitializeFromExifColorSpace(&self, _value: u32) -> ::windows::core::Result<()> {
-        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
-    }
-
-    fn GetType(&self) -> ::windows::core::Result<WICColorContextType> {
-        Ok(WICColorContextExifColorSpace)
-    }
-
-    fn GetProfileBytes(
-        &self,
-        _cbbuffer: u32,
-        _pbbuffer: *mut u8,
-        _pcbactual: *mut u32,
-    ) -> ::windows::core::Result<()> {
-        // TODO: Implement this for proper ICC profile support
-        WINCODEC_ERR_UNSUPPORTEDOPERATION.ok()
-    }
-
-    fn GetExifColorSpace(&self) -> ::windows::core::Result<u32> {
-        Ok(1) // sRGB
     }
 }
