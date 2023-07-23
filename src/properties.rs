@@ -1,7 +1,7 @@
 use std::io::BufReader;
 
 use windows as Windows;
-use windows::core::{implement, Interface, GUID, PCWSTR, PWSTR};
+use windows::core::{implement, Interface, GUID, HSTRING, PCWSTR};
 use windows::Win32::{
     Foundation::*,
     System::Com::IStream,
@@ -74,33 +74,25 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let PSGUID_IMAGESUMMARYINFORMATION =
             GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[width])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(Some(&[width]))? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 3,
         };
         unsafe { props.SetValueAndState(&propkey, &variant, PSC_READONLY)? };
 
-        let variant = unsafe { InitPropVariantFromUInt32Vector(&[height])? };
+        let variant = unsafe { InitPropVariantFromUInt32Vector(Some(&[height]))? };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 4,
         };
         unsafe { props.SetValueAndState(&propkey, &variant, PSC_READONLY)? };
 
-        // XXX: https://github.com/microsoft/windows-rs/issues/1288
-        #[allow(non_snake_case)]
-        unsafe fn InitPropVariantFromStringVectorWrapped<
-            'a,
-            Param0: windows::core::IntoParam<'a, PCWSTR>,
-        >(
-            pcwstr: Param0,
-        ) -> ::windows::core::Result<PROPVARIANT> {
-            let pcwstr = pcwstr.into_param().abi();
-            InitPropVariantFromStringVector(&[PWSTR(pcwstr.0 as *mut _)])
-        }
-        let variant =
-            unsafe { InitPropVariantFromStringVectorWrapped(format!("{} x {}", width, height))? };
+        let variant = unsafe {
+            InitPropVariantFromStringVector(Some(&[PCWSTR(
+                HSTRING::from(format!("{} x {}", width, height)).as_ptr(),
+            )]))?
+        };
         let propkey = PROPERTYKEY {
             fmtid: PSGUID_IMAGESUMMARYINFORMATION,
             pid: 13,
@@ -116,8 +108,11 @@ impl IPropertyStore_Impl for JXLPropertyStore {
         unsafe { self.get_props()?.GetCount() }
     }
 
-    fn GetAt(&self, iprop: u32) -> windows::core::Result<PROPERTYKEY> {
-        unsafe { self.get_props()?.GetAt(iprop) }
+    fn GetAt(&self, iprop: u32, pkey: *mut PROPERTYKEY) -> windows::core::Result<()> {
+        unsafe {
+            self.get_props()?.GetAt(iprop, pkey);
+        }
+        Ok(())
     }
 
     fn GetValue(&self, key: *const PROPERTYKEY) -> windows::core::Result<PROPVARIANT> {

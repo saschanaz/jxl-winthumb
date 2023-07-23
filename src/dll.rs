@@ -28,7 +28,7 @@ impl IClassFactory_Impl for ClassFactory {
         &self,
         outer: &Option<windows::core::IUnknown>,
         iid: *const GUID,
-        object: *mut windows::core::RawPtr,
+        object: *mut *mut core::ffi::c_void,
     ) -> windows::core::Result<()> {
         if outer.is_some() {
             return CLASS_E_NOAGGREGATION.ok();
@@ -56,9 +56,8 @@ impl IClassFactory_Impl for ClassFactory {
 }
 
 fn shell_change_notify() {
-    use std::ptr::null_mut;
     use windows::Win32::UI::Shell::{SHChangeNotify, SHCNE_ASSOCCHANGED, SHCNF_IDLIST};
-    unsafe { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, null_mut(), null_mut()) };
+    unsafe { SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, None, None) };
 }
 
 #[no_mangle]

@@ -16,8 +16,11 @@ impl Read for WinStream {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         let mut bytes_read = 0u32;
         unsafe {
-            self.stream
-                .Read(buf.as_mut_ptr() as _, buf.len() as u32, &mut bytes_read)
+            self.stream.Read(
+                buf.as_mut_ptr() as _,
+                buf.len() as u32,
+                Some((&mut bytes_read) as *mut _),
+            )
         }
         .ok()
         .map_err(|err| {
