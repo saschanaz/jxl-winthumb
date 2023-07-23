@@ -121,7 +121,7 @@ pub unsafe extern "system" fn DllGetClassObject(
     {
         // Set up logging to the project directory.
         simple_logging::log_to_file(
-            &format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
+            format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
             log::LevelFilter::Trace,
         )
         .unwrap();

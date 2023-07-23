@@ -21,7 +21,7 @@ const PERCEIVED_TYPE_VALUE: &str = "image";
 fn register_clsid_base(module_path: &str, clsid: &windows::core::GUID) -> std::io::Result<RegKey> {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     let clsid_key = hkcr.open_subkey("CLSID")?;
-    let (key, _) = clsid_key.create_subkey(&guid_to_string(clsid))?;
+    let (key, _) = clsid_key.create_subkey(guid_to_string(clsid))?;
     key.set_value("", &"jxl-winthumb")?;
 
     let (inproc, _) = key.create_subkey("InProcServer32")?;
@@ -167,7 +167,7 @@ fn register_provider() -> std::io::Result<()> {
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-thumbnail-cache
     let (system_shell_ex, _) = system_ext_key.create_subkey("ShellEx")?;
     system_shell_ex
-        .create_subkey(&guid_to_string(
+        .create_subkey(guid_to_string(
             &windows::Win32::UI::Shell::IThumbnailProvider::IID,
         ))?
         .0

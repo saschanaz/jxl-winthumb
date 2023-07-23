@@ -29,7 +29,7 @@ pub fn unregister_property_handler() -> std::io::Result<()> {
 
     let clsid_key = hkcr.open_subkey("CLSID")?;
     clsid_key
-        .delete_subkey_all(&guid_to_string(&JXLPropertyStore::CLSID))
+        .delete_subkey_all(guid_to_string(&JXLPropertyStore::CLSID))
         .ok();
 
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
