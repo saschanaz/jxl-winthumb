@@ -46,14 +46,13 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let stream = WinStream::from(pstream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let mut image = JxlImage::from_reader(reader).map_err(|err| {
+        let image = JxlImage::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
-        let renderer = image.renderer();
 
-        let (width, height, _left, _top) = renderer.image_header().metadata.apply_orientation(
-            renderer.image_header().size.width,
-            renderer.image_header().size.height,
+        let (width, height, _left, _top) = image.image_header().metadata.apply_orientation(
+            image.image_header().size.width,
+            image.image_header().size.height,
             0,
             0,
             false,

@@ -66,16 +66,15 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         let mut image = JxlImageFromWinStream::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
-        let mut renderer = image.renderer();
 
         let mut frames: Vec<Rc<FrameBuffer>> = Vec::new();
 
         let mut load_all = || -> jxl_oxide::Result<usize> {
             loop {
-                let load_result = renderer.render_next_frame()?;
+                let load_result = image.render_next_frame()?;
                 match load_result {
                     jxl_oxide::RenderResult::NoMoreFrames => {
-                        return Ok(renderer.num_loaded_keyframes())
+                        return Ok(image.num_loaded_keyframes())
                     }
                     jxl_oxide::RenderResult::NeedMoreData => {
                         return Err(Box::new(std::io::Error::from(
@@ -92,9 +91,9 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
 
-        let (width, height, _left, _top) = renderer.image_header().metadata.apply_orientation(
-            renderer.image_header().size.width,
-            renderer.image_header().size.height,
+        let (width, height, _left, _top) = image.image_header().metadata.apply_orientation(
+            image.image_header().size.width,
+            image.image_header().size.height,
             0,
             0,
             false,
@@ -102,8 +101,8 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
         self.decoded.replace(Some(DecodedResult {
             frames,
-            pixel_format: renderer.pixel_format(),
-            icc: Rc::new(renderer.rendered_icc()),
+            pixel_format: image.pixel_format(),
+            icc: Rc::new(image.rendered_icc()),
             width,
             height,
         }));
