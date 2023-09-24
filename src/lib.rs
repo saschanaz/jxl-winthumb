@@ -28,7 +28,8 @@ mod properties;
 type JxlImageFromWinStream = JxlImage<BufReader<WinStream>>;
 
 pub struct DecodedResult {
-    frames: Vec<Rc<FrameBuffer>>,
+    image: JxlImageFromWinStream,
+    frameCount: usize,
     pixel_format: PixelFormat,
     icc: Rc<Vec<u8>>,
     width: u32,
@@ -67,22 +68,21 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
 
-        let mut frames: Vec<Rc<FrameBuffer>> = Vec::new();
+        let mut frameCount = 0usize;
 
         let mut load_all = || -> jxl_oxide::Result<usize> {
             loop {
-                let load_result = image.render_next_frame()?;
+                let load_result = image.load_next_frame()?;
                 match load_result {
-                    jxl_oxide::RenderResult::NoMoreFrames => {
-                        return Ok(image.num_loaded_keyframes())
-                    }
-                    jxl_oxide::RenderResult::NeedMoreData => {
+                    jxl_oxide::LoadResult::NoMoreFrames => return Ok(image.num_loaded_keyframes()),
+                    jxl_oxide::LoadResult::NeedMoreData => {
                         return Err(Box::new(std::io::Error::from(
                             std::io::ErrorKind::UnexpectedEof,
                         )))
                     }
-                    jxl_oxide::RenderResult::Done(render) => {
-                        frames.push(Rc::new(render.image()));
+                    jxl_oxide::LoadResult::Done(index) => {
+                        assert_eq!(frameCount, index);
+                        frameCount += 1;
                     }
                 }
             }
@@ -100,9 +100,10 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         );
 
         self.decoded.replace(Some(DecodedResult {
-            frames,
+            frameCount,
             pixel_format: image.pixel_format(),
             icc: Rc::new(image.rendered_icc()),
+            image,
             width,
             height,
         }));
@@ -187,27 +188,34 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         if decoded_ref.is_none() {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
-        let frame_count = decoded_ref.as_ref().unwrap().frames.len();
+        let frame_count = decoded_ref.as_ref().unwrap().frameCount;
 
         log::trace!("JXLWICBitmapDecoder::GetFrameCount: {}", frame_count);
         Ok(frame_count as u32)
     }
 
     fn GetFrame(&self, index: u32) -> windows::core::Result<IWICBitmapFrameDecode> {
-        let decoded_ref = self.decoded.borrow();
+        let mut decoded_ref = self.decoded.borrow_mut();
         if decoded_ref.is_none() {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
 
-        let decoded = decoded_ref.as_ref().unwrap();
-        log::trace!("[{}/{}]", index, decoded.frames.len());
+        let decoded = decoded_ref.as_mut().unwrap();
+        log::trace!("[{}/{}]", index, decoded.frameCount);
 
-        if index >= decoded.frames.len() as u32 {
+        if index >= decoded.frameCount as u32 {
             return Err(WINCODEC_ERR_FRAMEMISSING.ok().unwrap_err());
         }
 
+        let render = decoded.image.render_frame(index as usize).map_err(|err| {
+            windows::core::Error::new(
+                WINCODEC_ERR_FRAMEMISSING,
+                format!("{:?}", err).as_str().into(),
+            )
+        })?;
+
         let frame_decode = JXLWICBitmapFrameDecode::new(
-            decoded.frames[index as usize].clone(),
+            render.image(),
             decoded.pixel_format,
             decoded.icc.clone(),
             decoded.width,
@@ -219,7 +227,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapFrameDecode)]
 pub struct JXLWICBitmapFrameDecode {
-    frame: Rc<FrameBuffer>,
+    frame: FrameBuffer,
     pixel_format: PixelFormat,
     icc: Rc<Vec<u8>>,
     width: u32,
@@ -228,7 +236,7 @@ pub struct JXLWICBitmapFrameDecode {
 
 impl JXLWICBitmapFrameDecode {
     pub fn new(
-        frame: Rc<FrameBuffer>,
+        frame: FrameBuffer,
         pixel_format: PixelFormat,
         icc: Rc<Vec<u8>>,
         width: u32,
