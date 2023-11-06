@@ -2,6 +2,13 @@
 
 A JPEG XL (*.jxl) WIC decoder to render thumbnails on Windows File Explorer or view images on any WIC-capable image viewers.
 
+## How to install
+
+1. Download the dll file from https://github.com/saschanaz/jxl-winthumb/releases
+1. Open a terminal window as administrator
+1. Move to your download directory
+1. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
+
 ## Build environment
 
 Use the stable Rust toolchain. Current toolchain as of 23th July 2023 is 1.71.0.
