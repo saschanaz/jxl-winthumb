@@ -25,11 +25,9 @@ mod guid;
 
 mod properties;
 
-type JxlImageFromWinStream = JxlImage<BufReader<WinStream>>;
-
 pub struct DecodedResult {
-    image: JxlImageFromWinStream,
-    frameCount: usize,
+    image: JxlImage,
+    frame_count: usize,
     pixel_format: PixelFormat,
     icc: Rc<Vec<u8>>,
     width: u32,
@@ -64,30 +62,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         let stream = WinStream::from(pistream.to_owned().unwrap());
         let reader = BufReader::new(stream);
 
-        let mut image = JxlImageFromWinStream::from_reader(reader).map_err(|err| {
-            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
-        })?;
-
-        let mut frameCount = 0usize;
-
-        let mut load_all = || -> jxl_oxide::Result<usize> {
-            loop {
-                let load_result = image.load_next_frame()?;
-                match load_result {
-                    jxl_oxide::LoadResult::NoMoreFrames => return Ok(image.num_loaded_keyframes()),
-                    jxl_oxide::LoadResult::NeedMoreData => {
-                        return Err(Box::new(std::io::Error::from(
-                            std::io::ErrorKind::UnexpectedEof,
-                        )))
-                    }
-                    jxl_oxide::LoadResult::Done(index) => {
-                        assert_eq!(frameCount, index);
-                        frameCount += 1;
-                    }
-                }
-            }
-        };
-        load_all().map_err(|err| {
+        let image = JxlImage::from_reader(reader).map_err(|err| {
             windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
         })?;
 
@@ -100,7 +75,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         );
 
         self.decoded.replace(Some(DecodedResult {
-            frameCount,
+            frame_count: image.num_loaded_keyframes(),
             pixel_format: image.pixel_format(),
             icc: Rc::new(image.rendered_icc()),
             image,
@@ -188,7 +163,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         if decoded_ref.is_none() {
             return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
         }
-        let frame_count = decoded_ref.as_ref().unwrap().frameCount;
+        let frame_count = decoded_ref.as_ref().unwrap().frame_count;
 
         log::trace!("JXLWICBitmapDecoder::GetFrameCount: {}", frame_count);
         Ok(frame_count as u32)
@@ -201,9 +176,9 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         }
 
         let decoded = decoded_ref.as_mut().unwrap();
-        log::trace!("[{}/{}]", index, decoded.frameCount);
+        log::trace!("[{}/{}]", index, decoded.frame_count);
 
-        if index >= decoded.frameCount as u32 {
+        if index >= decoded.frame_count as u32 {
             return Err(WINCODEC_ERR_FRAMEMISSING.ok().unwrap_err());
         }
 
