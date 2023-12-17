@@ -1,8 +1,7 @@
 use jxl_winthumb::JXLWICBitmapDecoder;
-use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
-use windows::Win32::UI::Shell::SHCreateMemStream;
 use windows::Win32::Graphics::Imaging::*;
-use windows::Win32::System::Com::CoInitialize;
+use windows::Win32::System::Com::{CoCreateInstance, CoInitialize, CLSCTX_INPROC_SERVER};
+use windows::Win32::UI::Shell::SHCreateMemStream;
 
 #[test]
 fn basic() {
@@ -28,8 +27,7 @@ fn basic() {
     assert_eq!(width, 1024, "width");
     assert_eq!(height, 1024, "height");
 
-    let mut pixels: Vec<u8> = Vec::new();
-    pixels.resize(1024 * 1024 * 4, 0);
+    let mut pixels: Vec<u8> = vec![0; 1024 * 1024 * 4];
     unsafe {
         bitmap.CopyPixels(
             &WICRect {
