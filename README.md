@@ -9,9 +9,11 @@ A JPEG XL (*.jxl) WIC decoder to render thumbnails on Windows File Explorer or v
 1. Move to your download directory
 1. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
 
+You might need to restart windows for the extention to work.
+
 ## Build environment
 
-Use the stable Rust toolchain. Current toolchain as of 23th July 2023 is 1.71.0.
+Use the stable Rust toolchain. Current toolchain as of 26th February 2024 is 1.75.0.
 
 ## Helpful resources
 
