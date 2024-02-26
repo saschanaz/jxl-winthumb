@@ -10,13 +10,13 @@ crate-type = ["rlib", "cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simple-logging = "2.0.2"
-log = "0.4.17"
-winreg = "0.10.1"
-jxl-oxide = "0.5.1"
+simple-logging = "2.0"
+log = "0.4"
+winreg = "0.52.0"
+jxl-oxide = "0.7"
 
 [dependencies.windows]
-version = "0.44.0"
+version = "0.53.0"
 features = [
   "implement",
   "Win32_Graphics_Imaging",
