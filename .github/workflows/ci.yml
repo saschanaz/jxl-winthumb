@@ -6,7 +6,7 @@ name: CI
 
 jobs:
   build:
-    name: Build
+    name: Build and test
     runs-on: windows-latest
     steps:
       - name: Checkout sources
@@ -19,10 +19,10 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo build
+      - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
-          command: build
+          command: test
 
   lints:
     name: Lints
