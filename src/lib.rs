@@ -110,12 +110,12 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn GetMetadataQueryReader(&self) -> windows::core::Result<IWICMetadataQueryReader> {
         log::trace!("JXLWICBitmapDecoder::GetMetadataQueryReader");
-        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.ok().unwrap_err())
+        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.into())
     }
 
     fn GetPreview(&self) -> windows::core::Result<IWICBitmapSource> {
         log::trace!("JXLWICBitmapDecoder::GetPreview");
-        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.ok().unwrap_err())
+        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.into())
     }
 
     fn GetColorContexts(
@@ -125,10 +125,10 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         pcactualcount: *mut u32,
     ) -> windows::core::Result<()> {
         let decoded_ref = self.decoded.borrow();
-        if decoded_ref.is_none() {
+
+        let Some(decoded) = decoded_ref.as_ref() else {
             return WINCODEC_ERR_NOTINITIALIZED.ok();
-        }
-        let decoded = decoded_ref.as_ref().unwrap();
+        };
 
         log::trace!(
             "JXLWICBitmapDecoder::GetColorContexts {} {:?} {:?}",
@@ -138,13 +138,13 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         );
         // TODO: Proper color context
         unsafe {
-            if !ppicolorcontexts.is_null() && ccount == 1 {
-                ppicolorcontexts
-                    .as_mut()
-                    .unwrap()
-                    .as_mut()
-                    .expect("There should be a color context here")
-                    .InitializeFromMemory(&decoded.icc[..])?;
+            if let Some(context) = ppicolorcontexts.as_mut() {
+                if ccount == 1 {
+                    context
+                        .as_mut()
+                        .expect("There should be a color context here")
+                        .InitializeFromMemory(&decoded.icc[..])?;
+                }
             }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
@@ -155,15 +155,15 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
         log::trace!("JXLWICBitmapDecoder::GetThumbnail");
-        Err(WINCODEC_ERR_CODECNOTHUMBNAIL.ok().unwrap_err())
+        Err(WINCODEC_ERR_CODECNOTHUMBNAIL.into())
     }
 
     fn GetFrameCount(&self) -> windows::core::Result<u32> {
         let decoded_ref = self.decoded.borrow();
-        if decoded_ref.is_none() {
-            return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
-        }
-        let frame_count = decoded_ref.as_ref().unwrap().frame_count;
+        let Some(decoded) = decoded_ref.as_ref() else {
+            return Err(WINCODEC_ERR_NOTINITIALIZED.into());
+        };
+        let frame_count = decoded.frame_count;
 
         log::trace!("JXLWICBitmapDecoder::GetFrameCount: {}", frame_count);
         Ok(frame_count as u32)
@@ -171,15 +171,14 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn GetFrame(&self, index: u32) -> windows::core::Result<IWICBitmapFrameDecode> {
         let mut decoded_ref = self.decoded.borrow_mut();
-        if decoded_ref.is_none() {
-            return Err(WINCODEC_ERR_NOTINITIALIZED.ok().unwrap_err());
-        }
+        let Some(decoded) = decoded_ref.as_mut() else {
+            return Err(WINCODEC_ERR_NOTINITIALIZED.into());
+        };
 
-        let decoded = decoded_ref.as_mut().unwrap();
         log::trace!("[{}/{}]", index, decoded.frame_count);
 
         if index >= decoded.frame_count as u32 {
-            return Err(WINCODEC_ERR_FRAMEMISSING.ok().unwrap_err());
+            return Err(WINCODEC_ERR_FRAMEMISSING.into());
         }
 
         let render = decoded.image.render_frame(index as usize).map_err(|err| {
@@ -281,13 +280,12 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
     ) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels");
 
-        if prc.is_null() {
-            return Err(E_INVALIDARG.ok().unwrap_err());
-        }
-
         let pbbuffer = pbbuffer as *mut u16;
 
-        let prc = unsafe { prc.as_ref().unwrap() };
+        let Some(prc) = (unsafe { prc.as_ref() }) else {
+            return Err(E_INVALIDARG.into());
+        };
+
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
 
         let channels = self.frame.channels() as i32;
@@ -314,7 +312,7 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
 impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
     fn GetMetadataQueryReader(&self) -> windows::core::Result<IWICMetadataQueryReader> {
         log::trace!("JXLWICBitmapFrameDecode::GetMetadataQueryReader");
-        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.ok().unwrap_err())
+        Err(WINCODEC_ERR_UNSUPPORTEDOPERATION.into())
     }
 
     fn GetColorContexts(
@@ -330,13 +328,13 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
             pcactualcount
         );
         unsafe {
-            if !ppicolorcontexts.is_null() && ccount == 1 {
-                ppicolorcontexts
-                    .as_mut()
-                    .unwrap()
-                    .as_mut()
-                    .expect("There should be a color context here")
-                    .InitializeFromMemory(&self.icc[..])?;
+            if let Some(context) = ppicolorcontexts.as_mut() {
+                if ccount == 1 {
+                    context
+                        .as_mut()
+                        .expect("There should be a color context here")
+                        .InitializeFromMemory(&self.icc[..])?;
+                }
             }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
@@ -347,6 +345,6 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode {
 
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
         log::trace!("JXLWICBitmapFrameDecode::GetThumbnail");
-        Err(WINCODEC_ERR_CODECNOTHUMBNAIL.ok().unwrap_err())
+        Err(WINCODEC_ERR_CODECNOTHUMBNAIL.into())
     }
 }

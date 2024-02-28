@@ -64,12 +64,9 @@ fn shell_change_notify() {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub unsafe extern "system" fn DllRegisterServer() -> HRESULT {
-    let module_path = {
-        let result = get_module_path(DLL_INSTANCE);
-        if let Err(err) = result {
-            return err;
-        }
-        result.unwrap()
+    let module_path = match get_module_path(DLL_INSTANCE) {
+        Ok(path) => path,
+        Err(err) => return err,
     };
     if register(&module_path).is_ok() {
         shell_change_notify();
