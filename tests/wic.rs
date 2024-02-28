@@ -5,7 +5,7 @@ use windows::Win32::UI::Shell::SHCreateMemStream;
 
 #[test]
 fn basic() {
-    unsafe { CoInitialize(None) }.unwrap();
+    unsafe { CoInitialize(None) }.ok().expect("CoInitialize");
 
     let mem = std::fs::read("tests/alien.jxl").expect("Read the test file");
     let stream = unsafe { SHCreateMemStream(Some(&mem[..])) }.expect("Create an IStream");
