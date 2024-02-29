@@ -10,10 +10,10 @@ crate-type = ["rlib", "cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simple-logging = "2.0"
-log = "0.4"
+simple-logging = "2.0.2"
+log = "0.4.21"
 winreg = "0.52.0"
-jxl-oxide = "0.7"
+jxl-oxide = "0.7.1"
 
 [dependencies.windows]
 version = "0.54.0"
