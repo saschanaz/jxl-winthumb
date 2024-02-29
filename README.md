@@ -10,7 +10,7 @@ A JPEG XL (*.jxl) WIC decoder to render thumbnails on Windows File Explorer or v
 1. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
 
 You might need to restart `explorer.exe` for the component to work.  
-You can use this command: `taskkill /f /im explorer.exe & start explorer.exe`
+You can use this command: `taskkill /f /im explorer.exe && start explorer.exe`
 
 ## Build environment
 
