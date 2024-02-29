@@ -48,7 +48,7 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
         let reader = BufReader::new(stream);
 
         let image = JxlImage::builder().read(reader).map_err(|err| {
-            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str())
+            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err))
         })?;
 
         let (width, height, _left, _top) = image.image_header().metadata.apply_orientation(
