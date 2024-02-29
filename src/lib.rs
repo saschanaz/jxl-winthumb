@@ -242,18 +242,18 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
 
     fn GetPixelFormat(&self) -> windows::core::Result<GUID> {
         log::trace!("JXLWICBitmapFrameDecode::GetPixelFormat");
-        // TODO: Support all formats
+
         match self.pixel_format {
-            PixelFormat::Gray => Ok(GUID_WICPixelFormat32bppGrayFloat),
+            PixelFormat::Gray => Ok(GUID_WICPixelFormat16bppGray),
+            // WIC doesn't support Graya, but maybe can be emulated with RGBA
             PixelFormat::Graya => Err(windows::core::Error::new(
                 WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT,
                 "Gray alpha image is currently not supported",
             )),
-            PixelFormat::Rgb => Ok(GUID_WICPixelFormat96bppRGBFloat),
-            PixelFormat::Rgba => Ok(GUID_WICPixelFormat128bppRGBAFloat),
-            jxl_oxide::PixelFormat::Cmyk | jxl_oxide::PixelFormat::Cmyka => Err(
-                windows::core::Error::new(WINCODEC_ERR_BADIMAGE, "Cmyk is currently not supported"),
-            ),
+            PixelFormat::Rgb => Ok(GUID_WICPixelFormat48bppRGB),
+            PixelFormat::Rgba => Ok(GUID_WICPixelFormat64bppRGBA),
+            PixelFormat::Cmyk => Ok(GUID_WICPixelFormat64bppCMYK),
+            PixelFormat::Cmyka => Ok(GUID_WICPixelFormat80bppCMYKAlpha),
         }
     }
 
@@ -285,23 +285,25 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
             return Err(E_INVALIDARG.ok().unwrap_err());
         }
 
+        let pbbuffer = pbbuffer as *mut u16;
+
         let prc = unsafe { prc.as_ref().unwrap() };
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
 
         let channels = self.frame.channels();
+        let buf = self.frame.buf();
 
         for y in prc.Y..(prc.Y + prc.Height) {
-            let src_offset = self.width as i32 * channels as i32 * y;
+            let src_offset = self.width as i32 * channels as i32 * y + prc.X;
             let dst_offset = prc.Width * 4 * (y - prc.Y);
-            unsafe {
-                std::ptr::copy_nonoverlapping(
-                    self.frame
-                        .buf()
-                        .as_ptr()
-                        .offset((src_offset + prc.X) as isize),
-                    (pbbuffer as *mut f32).offset(dst_offset as isize),
-                    (prc.Width as usize) * channels,
-                );
+
+            for x in prc.X..(prc.X + prc.Width) * channels as i32 {
+                // XXX: jxl-oxide emits f32 pixels, but it can't be used as-is because of WIC limitation.
+                // Thus here we convert f32 to u16 instead. https://github.com/saschanaz/jxl-winthumb/issues/29
+                unsafe {
+                    *pbbuffer.offset((dst_offset + x) as isize) =
+                        (buf[(src_offset + x) as usize] * u16::MAX as f32) as u16;
+                }
             }
         }
 
