@@ -1,15 +1,16 @@
 use std::io::BufReader;
 
 use windows as Windows;
-use windows::core::{implement, Interface, GUID, HSTRING, PCWSTR};
+use windows::core::{implement, Interface, GUID, HSTRING, PCWSTR, PROPVARIANT};
 use windows::Win32::{
     Foundation::*,
-    System::Com::IStream,
-    System::Com::StructuredStorage::PROPVARIANT,
+    System::Com::{
+        IStream,
+        StructuredStorage::{InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector},
+    },
     UI::Shell::PropertiesSystem::{
         IInitializeWithStream_Impl, IPropertyStoreCache, IPropertyStoreCapabilities_Impl,
-        IPropertyStore_Impl, InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector,
-        PSCreateMemoryPropertyStore, PROPERTYKEY, PSC_READONLY,
+        IPropertyStore_Impl, PSCreateMemoryPropertyStore, PROPERTYKEY, PSC_READONLY,
     },
 };
 
@@ -33,7 +34,7 @@ impl JXLPropertyStore {
         if self.props.is_none() {
             return Err(windows::core::Error::new(
                 WINCODEC_ERR_NOTINITIALIZED,
-                "Property store not initialized".into(),
+                "Property store not initialized",
             ));
         }
 
@@ -42,12 +43,12 @@ impl JXLPropertyStore {
 }
 
 impl IInitializeWithStream_Impl for JXLPropertyStore {
-    fn Initialize(&self, pstream: &Option<IStream>, _grfmode: u32) -> windows::core::Result<()> {
-        let stream = WinStream::from(pstream.to_owned().unwrap());
+    fn Initialize(&self, pstream: Option<&IStream>, _grfmode: u32) -> windows::core::Result<()> {
+        let stream = WinStream::from(pstream.unwrap());
         let reader = BufReader::new(stream);
 
-        let image = JxlImage::from_reader(reader).map_err(|err| {
-            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
+        let image = JxlImage::builder().read(reader).map_err(|err| {
+            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err))
         })?;
 
         let (width, height, _left, _top) = image.image_header().metadata.apply_orientation(
@@ -125,14 +126,14 @@ impl IPropertyStore_Impl for JXLPropertyStore {
     ) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported".into(),
+            "Setter not supported",
         ))
     }
 
     fn Commit(&self) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported".into(),
+            "Setter not supported",
         ))
     }
 }
@@ -141,7 +142,7 @@ impl IPropertyStoreCapabilities_Impl for JXLPropertyStore {
     fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported".into(),
+            "Setter not supported",
         ))
     }
 }

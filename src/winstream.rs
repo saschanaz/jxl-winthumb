@@ -2,17 +2,17 @@ use std::io::{ErrorKind, Read};
 
 use windows::Win32::System::Com::IStream;
 
-pub struct WinStream {
-    stream: IStream,
+pub struct WinStream<'a> {
+    stream: &'a IStream,
 }
 
-impl From<IStream> for WinStream {
-    fn from(stream: IStream) -> Self {
+impl<'a> From<&'a IStream> for WinStream<'a> {
+    fn from(stream: &'a IStream) -> Self {
         Self { stream }
     }
 }
 
-impl Read for WinStream {
+impl<'a> Read for WinStream<'a> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         let mut bytes_read = 0u32;
         unsafe {

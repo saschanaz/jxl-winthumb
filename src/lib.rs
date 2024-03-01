@@ -46,7 +46,7 @@ impl JXLWICBitmapDecoder {
 }
 
 impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
-    fn QueryCapability(&self, _pistream: &Option<IStream>) -> windows::core::Result<u32> {
+    fn QueryCapability(&self, _pistream: Option<&IStream>) -> windows::core::Result<u32> {
         log::trace!("QueryCapability");
         Ok((WICBitmapDecoderCapabilityCanDecodeSomeImages.0
             | WICBitmapDecoderCapabilityCanDecodeAllImages.0) as u32)
@@ -54,16 +54,16 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
 
     fn Initialize(
         &self,
-        pistream: &Option<IStream>,
+        pistream: Option<&IStream>,
         _cacheoptions: WICDecodeOptions,
     ) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapDecoder::Initialize");
 
-        let stream = WinStream::from(pistream.to_owned().unwrap());
+        let stream = WinStream::from(pistream.unwrap());
         let reader = BufReader::new(stream);
 
-        let image = JxlImage::from_reader(reader).map_err(|err| {
-            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err).as_str().into())
+        let image = JxlImage::builder().read(reader).map_err(|err| {
+            windows::core::Error::new(WINCODEC_ERR_BADIMAGE, format!("{:?}", err))
         })?;
 
         let (width, height, _left, _top) = image.image_header().metadata.apply_orientation(
@@ -102,7 +102,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         }
     }
 
-    fn CopyPalette(&self, _pipalette: &Option<IWICPalette>) -> windows::core::Result<()> {
+    fn CopyPalette(&self, _pipalette: Option<&IWICPalette>) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapDecoder::CopyPalette");
         // TODO
         WINCODEC_ERR_PALETTEUNAVAILABLE.ok()
@@ -183,10 +183,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder {
         }
 
         let render = decoded.image.render_frame(index as usize).map_err(|err| {
-            windows::core::Error::new(
-                WINCODEC_ERR_FRAMEMISSING,
-                format!("{:?}", err).as_str().into(),
-            )
+            windows::core::Error::new(WINCODEC_ERR_FRAMEMISSING, format!("{:?}", err))
         })?;
 
         let frame_decode = JXLWICBitmapFrameDecode::new(
@@ -250,16 +247,13 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
             PixelFormat::Gray => Ok(GUID_WICPixelFormat32bppGrayFloat),
             PixelFormat::Graya => Err(windows::core::Error::new(
                 WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT,
-                "Gray alpha image is currently not supported".into(),
+                "Gray alpha image is currently not supported",
             )),
             PixelFormat::Rgb => Ok(GUID_WICPixelFormat96bppRGBFloat),
             PixelFormat::Rgba => Ok(GUID_WICPixelFormat128bppRGBAFloat),
-            jxl_oxide::PixelFormat::Cmyk | jxl_oxide::PixelFormat::Cmyka => {
-                Err(windows::core::Error::new(
-                    WINCODEC_ERR_BADIMAGE,
-                    "Cmyk is currently not supported".into(),
-                ))
-            }
+            jxl_oxide::PixelFormat::Cmyk | jxl_oxide::PixelFormat::Cmyka => Err(
+                windows::core::Error::new(WINCODEC_ERR_BADIMAGE, "Cmyk is currently not supported"),
+            ),
         }
     }
 
@@ -273,7 +267,7 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
         Ok(())
     }
 
-    fn CopyPalette(&self, _pipalette: &Option<IWICPalette>) -> windows::core::Result<()> {
+    fn CopyPalette(&self, _pipalette: Option<&IWICPalette>) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapFrameDecode::CopyPalette");
         WINCODEC_ERR_PALETTEUNAVAILABLE.ok()
     }

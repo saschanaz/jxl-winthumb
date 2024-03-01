@@ -26,7 +26,7 @@ struct ClassFactory {}
 impl IClassFactory_Impl for ClassFactory {
     fn CreateInstance(
         &self,
-        outer: &Option<windows::core::IUnknown>,
+        outer: Option<&windows::core::IUnknown>,
         iid: *const GUID,
         object: *mut *mut core::ffi::c_void,
     ) -> windows::core::Result<()> {
@@ -37,11 +37,11 @@ impl IClassFactory_Impl for ClassFactory {
             match *iid {
                 windows::Win32::Graphics::Imaging::IWICBitmapDecoder::IID => {
                     let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
-                    unknown.query(&*iid, object as _).ok()
+                    unknown.query(iid, object).ok()
                 }
                 windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
                     let unknown: IUnknown = JXLPropertyStore::default().into();
-                    unknown.query(&*iid, object as _).ok()
+                    unknown.query(iid, object).ok()
                 }
                 _ => {
                     log::trace!("Unknown IID: {:?}", *iid);
@@ -113,7 +113,7 @@ pub extern "stdcall" fn DllMain(
 pub unsafe extern "system" fn DllGetClassObject(
     rclsid: *const GUID,
     riid: *const GUID,
-    pout: *mut *const core::ffi::c_void,
+    pout: *mut *mut core::ffi::c_void,
 ) -> HRESULT {
     // Sets up logging to the Cargo.toml directory for debug purposes.
     #[cfg(debug_assertions)]
@@ -134,7 +134,7 @@ pub unsafe extern "system" fn DllGetClassObject(
     let unknown: IUnknown = factory.into();
 
     match *rclsid {
-        JXLWICBitmapDecoder::CLSID | JXLPropertyStore::CLSID => unknown.query(&*riid, pout),
+        JXLWICBitmapDecoder::CLSID | JXLPropertyStore::CLSID => unknown.query(riid, pout),
         _ => CLASS_E_CLASSNOTAVAILABLE,
     }
 }
