@@ -290,14 +290,14 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode {
         let prc = unsafe { prc.as_ref().unwrap() };
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
 
-        let channels = self.frame.channels();
+        let channels = self.frame.channels() as i32;
         let buf = self.frame.buf();
 
         for y in prc.Y..(prc.Y + prc.Height) {
-            let src_offset = self.width as i32 * channels as i32 * y + prc.X;
-            let dst_offset = prc.Width * 4 * (y - prc.Y);
+            let src_offset = (self.width as i32 * y + prc.X) * channels;
+            let dst_offset = prc.Width * (y - prc.Y) * channels;
 
-            for x in prc.X..(prc.X + prc.Width) * channels as i32 {
+            for x in prc.X..(prc.X + prc.Width) * channels {
                 // XXX: jxl-oxide emits f32 pixels, but it can't be used as-is because of WIC limitation.
                 // Thus here we convert f32 to u16 instead. https://github.com/saschanaz/jxl-winthumb/issues/29
                 unsafe {
