@@ -42,7 +42,7 @@ fn basic() {
     }
     .expect("Copy pixels");
     assert_eq!(pixels[0], 0, "red");
-    assert_eq!(pixels[1], 42, "green"); // XXX: But this should be 6...
+    assert_eq!(pixels[1], 6, "green");
     assert_eq!(pixels[2], 0, "blue");
     assert_eq!(pixels[3], 255, "alpha");
 }
