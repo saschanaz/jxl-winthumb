@@ -28,3 +28,10 @@ features = [
   "Win32_UI_Shell",
   "Win32_UI_Shell_PropertiesSystem",
 ]
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmark"
+harness = false
