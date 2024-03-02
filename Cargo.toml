@@ -1,6 +1,6 @@
 [package]
 name = "jxl-winthumb"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2018"
 

@@ -366,7 +366,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "criterion",
  "jxl-oxide",
