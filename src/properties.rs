@@ -31,14 +31,13 @@ impl JXLPropertyStore {
     pub const CLSID: GUID = GUID::from_u128(0x95ffe0f8_ab15_4751_a2f3_cfafdbf13664);
 
     fn get_props(&self) -> windows::core::Result<&IPropertyStoreCache> {
-        if self.props.is_none() {
-            return Err(windows::core::Error::new(
+        match self.props {
+            Some(ref props) => Ok(props),
+            None => Err(windows::core::Error::new(
                 WINCODEC_ERR_NOTINITIALIZED,
                 "Property store not initialized",
-            ));
+            )),
         }
-
-        Ok(self.props.as_ref().unwrap())
     }
 }
 
@@ -66,7 +65,12 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
             )?
         };
 
-        let props = self.props.as_ref().unwrap();
+        let Some(props) = self.props.as_ref() else {
+            return Err(windows::core::Error::new(
+                WINCODEC_ERR_NOTINITIALIZED,
+                "Property store not initialized",
+            ));
+        };
 
         // XXX: This is copied from um/propkey.h.
         // https://github.com/microsoft/win32metadata/issues/730
