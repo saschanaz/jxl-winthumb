@@ -225,9 +225,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-bitstream"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23ace52f4e7df7cf39e3132da74184a9f2dcd375c01008c28bb5e0af668d3254"
+checksum = "2b2936274557fb28f50d056d7ecb8f9e9588535423eaf4ce4ff7bdd29655fcb6"
 dependencies = [
  "tracing",
 ]
@@ -257,9 +257,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-frame"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd5c39977033aaa7484dfb14a273c2bd5f4ebf38ba4f344d8d4d5ab33a723956"
+checksum = "4ea7da91a3e19d9016eb4068a384b4df7b6cc7a3e390555e31df909a4190b812"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -294,9 +294,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-modular"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4274c241d7bf25216f87406d6d7c0f4826ba961eefaaf9a6a3982a235df64837"
+checksum = "5f9211269b8f74b96993e0fa30555687b17f038c317bb68dbe7ed07e21f4a338"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -307,9 +307,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-oxide"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31e0ad6f1defe2126f33bb24b4dfab84b7ea3dd6720af0399abb75ab4d20a7fb"
+checksum = "33a7668551629464e9feedb35c473445e912adb48d91bbe7580d25fdd3449282"
 dependencies = [
  "jxl-bitstream",
  "jxl-color",
@@ -323,9 +323,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-render"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90809573df2958b1598601a93e76afc10009419e21948afbd78c74989eb7946d"
+checksum = "d8fc30c4d20f4518a3d66020528638bf89e7db7a593e245e87cde8722c8013ff"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -366,7 +366,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "criterion",
  "jxl-oxide",
