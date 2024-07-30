@@ -244,9 +244,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-color"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32f150334d3e3c5f77c431a1e7d18278193d947170df14d55e78603d565bb240"
+checksum = "0cb1c31e10054079df585633fc14fb9e4c96565c58c05b983c502e2472b57fa0"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -273,9 +273,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-grid"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b25b54442448752e9ccbd5e177da76e84b464054eddef792c44ceb11fc68aba"
+checksum = "70b96735a85299a6bce8664643fcb759f29ea73ce344a90b6f7de9b92a8e9b2d"
 dependencies = [
  "tracing",
 ]
@@ -294,9 +294,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-modular"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1843abf9c339b6acf89ed262c07ebb36950180d6c1acbc858700178aedb8498"
+checksum = "da3b9fb8f46e63a14ecedefbd0f873b04162aaf8a09676b630c31bc8dadc4638"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -307,9 +307,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-oxide"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b9f6890332924f117b2ac4f5374860b5108536a4f9f9c29d65a53ecdf0bf753"
+checksum = "6ba1ee3895e6c62b131994807b1ee6d179013613a86c01c203369af8d1e8d2f0"
 dependencies = [
  "jxl-bitstream",
  "jxl-color",
@@ -323,9 +323,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-render"
-version = "0.8.0"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca6a8f7a0ca6ab2dfa69754a775c594eb4adb2c3577ea3b748e0eec0e145be88"
+checksum = "203a79b3025b86f875cc97a6f39e1fcc6314f915b2f6b69f767fca45fd482a11"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -366,7 +366,7 @@ dependencies = [
 
 [[package]]
 name = "jxl-winthumb"
-version = "0.2.5"
+version = "0.2.7"
 dependencies = [
  "criterion",
  "jxl-oxide",
