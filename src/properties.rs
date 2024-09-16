@@ -41,7 +41,7 @@ impl JXLPropertyStore {
     }
 }
 
-impl IInitializeWithStream_Impl for JXLPropertyStore {
+impl IInitializeWithStream_Impl for JXLPropertyStore_Impl {
     fn Initialize(&self, pstream: Option<&IStream>, _grfmode: u32) -> windows::core::Result<()> {
         let stream = WinStream::from(pstream.unwrap());
         let reader = BufReader::new(stream);
@@ -107,7 +107,7 @@ impl IInitializeWithStream_Impl for JXLPropertyStore {
     }
 }
 
-impl IPropertyStore_Impl for JXLPropertyStore {
+impl IPropertyStore_Impl for JXLPropertyStore_Impl {
     fn GetCount(&self) -> windows::core::Result<u32> {
         unsafe { self.get_props()?.GetCount() }
     }
@@ -142,7 +142,7 @@ impl IPropertyStore_Impl for JXLPropertyStore {
     }
 }
 
-impl IPropertyStoreCapabilities_Impl for JXLPropertyStore {
+impl IPropertyStoreCapabilities_Impl for JXLPropertyStore_Impl {
     fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
         Err(windows::core::Error::new(
             WINCODEC_ERR_UNSUPPORTEDOPERATION,
