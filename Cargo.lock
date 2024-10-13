@@ -266,9 +266,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-color"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97f0dd548fabf9c094f9f2304059c86764f606b9040c0bfcfac55f155f423b55"
+checksum = "c8ec11695f2091e50531c970ad7eb4819989a20a2c89d68ae1b4f74f48454c10"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -295,9 +295,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-grid"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e941628e8de1dc6ba1d2bba8ebc68a69f8ff50cc7ddce5bc821658d1f4ea6e59"
+checksum = "13a28ba2734da33624db4b426b44750a7b1238e6cba65d27b7d84bf3cba7f507"
 dependencies = [
  "tracing",
 ]
@@ -316,9 +316,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-modular"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f48a5d003627f380004c29d35e51672da06ae343a2e6fe8d9c84295b9a3e843"
+checksum = "d7e10bbc6041d9ea64bcfc6931ed89f0192954ac0a02bdbad624aa43b345e613"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
@@ -329,9 +329,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-oxide"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c209f66ef0fe72df77b44ee6aae98eb87bc2dd236d6981e44e143cc37f33f6e"
+checksum = "71f3b9dbe4adefadac57b25a15bf7735202ba58c0e5500c6bfb2d63398bf21c2"
 dependencies = [
  "jxl-bitstream",
  "jxl-color",
@@ -345,9 +345,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-render"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aec53c004c9171e89f15ad1f029d6b638cbd70d3a70276746bb8c75f9393bb64"
+checksum = "e4259446ca029587f2b7850d223d57b4f69665dd8628e83bcb0a6c2ab964f1ef"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
