@@ -5,7 +5,7 @@
 #![allow(unused_must_use)]
 #![allow(non_snake_case)]
 
-use jxl_oxide::{FrameBuffer, JxlImage, PixelFormat};
+use jxl_oxide::{JxlImage, PixelFormat};
 use std::{cell::RefCell, io::BufReader, rc::Rc};
 use windows::core::{implement, Interface, GUID};
 
@@ -32,6 +32,21 @@ pub struct DecodedResult {
     icc: Rc<Vec<u8>>,
     width: u32,
     height: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct FrameBuffer {
+    pub channels: usize,
+    pub buf: Vec<u16>,
+}
+
+impl FrameBuffer {
+    pub fn new(width: usize, height: usize, channels: usize) -> Self {
+        Self {
+            channels,
+            buf: vec![0u16; width * height * channels],
+        }
+    }
 }
 
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
@@ -186,12 +201,12 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
         })?;
 
         let mut stream = render.stream();
-        let mut fb = jxl_oxide::FrameBuffer::new(
+        let mut fb = FrameBuffer::new(
             stream.width() as usize,
             stream.height() as usize,
             stream.channels() as usize,
         );
-        stream.write_to_buffer(fb.buf_mut());
+        stream.write_to_buffer(&mut fb.buf[..]);
 
         let frame_decode = JXLWICBitmapFrameDecode::new(
             fb,
@@ -296,20 +311,18 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode_Impl {
 
         log::trace!("JXLWICBitmapFrameDecode::CopyPixels::WICRect {:?}", prc);
 
-        let channels = self.frame.channels() as i32;
-        let buf = self.frame.buf();
+        let channels = self.frame.channels;
+        let buf = &self.frame.buf;
 
         for y in prc.Y..(prc.Y + prc.Height) {
-            let src_offset = (self.width as i32 * y + prc.X) * channels;
-            let dst_offset = prc.Width * (y - prc.Y) * channels;
-
-            for x in prc.X..(prc.X + prc.Width) * channels {
-                // XXX: jxl-oxide emits f32 pixels, but it can't be used as-is because of WIC limitation.
-                // Thus here we convert f32 to u16 instead. https://github.com/saschanaz/jxl-winthumb/issues/29
-                unsafe {
-                    *pbbuffer.offset((dst_offset + x) as isize) =
-                        (buf[(src_offset + x) as usize] * u16::MAX as f32) as u16;
-                }
+            let src_offset = (self.width as i32 * y + prc.X) * (channels as i32);
+            let dst_offset = prc.Width * (y - prc.Y) * (channels as i32);
+            unsafe {
+                std::ptr::copy_nonoverlapping(
+                    buf.as_ptr().offset(src_offset as isize),
+                    pbbuffer.offset(dst_offset as isize),
+                    (prc.Width as usize) * channels,
+                );
             }
         }
 
