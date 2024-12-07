@@ -15,7 +15,7 @@ fn basic() {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("alien.jxl", |b| b.iter(|| basic()));
+    c.bench_function("alien.jxl", |b| b.iter(basic));
 }
 
 criterion_group!(benches, criterion_benchmark);

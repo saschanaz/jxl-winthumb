@@ -8,8 +8,11 @@ use crate::{
 use windows as Windows;
 use windows::core::{implement, IUnknown, Interface, GUID, HRESULT};
 use windows::Win32::{
-    Foundation::*, System::Com::IClassFactory_Impl, System::LibraryLoader::GetModuleFileNameW,
+    Foundation::*,
+    System::Com::IClassFactory_Impl,
+    System::LibraryLoader::GetModuleFileNameW,
     System::SystemServices::DLL_PROCESS_ATTACH,
+    UI::Shell::PropertiesSystem::{IInitializeWithStream, IPropertyStore},
 };
 
 static mut DLL_INSTANCE: HINSTANCE = HINSTANCE(std::ptr::null_mut());
@@ -39,7 +42,7 @@ impl IClassFactory_Impl for ClassFactory_Impl {
                     let unknown: IUnknown = JXLWICBitmapDecoder::default().into();
                     unknown.query(iid, object).ok()
                 }
-                windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore::IID => {
+                IPropertyStore::IID | IInitializeWithStream::IID => {
                     let unknown: IUnknown = JXLPropertyStore::default().into();
                     unknown.query(iid, object).ok()
                 }

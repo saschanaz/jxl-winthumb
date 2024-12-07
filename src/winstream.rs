@@ -12,7 +12,7 @@ impl<'a> From<&'a IStream> for WinStream<'a> {
     }
 }
 
-impl<'a> Read for WinStream<'a> {
+impl Read for WinStream<'_> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         let mut bytes_read = 0u32;
         unsafe {
