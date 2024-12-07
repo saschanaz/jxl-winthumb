@@ -43,6 +43,10 @@ impl IClassFactory_Impl for ClassFactory_Impl {
                     let unknown: IUnknown = JXLPropertyStore::default().into();
                     unknown.query(iid, object).ok()
                 }
+                windows::Win32::UI::Shell::PropertiesSystem::IInitializeWithStream::IID => {
+                    let unknown: IUnknown = JXLPropertyStore::default().into();
+                    unknown.query(iid, object).ok()
+                }
                 _ => {
                     log::trace!("Unknown IID: {:?}", *iid);
                     E_NOINTERFACE.ok()
