@@ -5,9 +5,10 @@ A JPEG XL (*.jxl) WIC decoder to render thumbnails on Windows File Explorer or v
 ## How to install
 
 1. Download the dll file from https://github.com/saschanaz/jxl-winthumb/releases
+   1. ARM64 Windows gets `_aarch64.dll`, Intel/AMD 64bit Windows gets `_x86_64.dll`, and Intel/AMD 32bit Windows gets `_i686.dll`.
 1. Open a terminal window as administrator
 1. Move to your download directory
-1. `regsvr32 jxl_winthumb.dll`, or to uninstall, `regsvr32 /u jxl_winthumb.dll`.
+1. `regsvr32 jxl_winthumb_(arch).dll`, or to uninstall, `regsvr32 /u jxl_winthumb_(arch).dll`.
 
 You might need to restart `explorer.exe` or any programs that use the dll before updating it. Get the list of such programs using `tasklist /m jxl_winthumb.dll` and kill them e.g. with `taskkill /f /im explorer.exe && start explorer.exe`.
 
