@@ -126,11 +126,8 @@ pub unsafe extern "system" fn DllGetClassObject(
         }
         let secs = duration.unwrap().as_secs();
         let dir = env!("CARGO_MANIFEST_DIR");
-        simple_logging::log_to_file(
-            format!("{dir}\\debug-{secs}.log"),
-            log::LevelFilter::Trace,
-        )
-        .unwrap();
+        simple_logging::log_to_file(format!("{dir}\\debug-{secs}.log"), log::LevelFilter::Trace)
+            .unwrap();
     }
     log::trace!("DllGetClassObject");
     if *riid != windows::Win32::System::Com::IClassFactory::IID {
