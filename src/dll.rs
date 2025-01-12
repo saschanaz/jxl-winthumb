@@ -119,8 +119,15 @@ pub unsafe extern "system" fn DllGetClassObject(
     #[cfg(debug_assertions)]
     {
         // Set up logging to the project directory.
+        use std::time::SystemTime;
+        let duration = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH);
+        if duration.is_err() {
+            return E_UNEXPECTED;
+        }
+        let secs = duration.unwrap().as_secs();
+        let dir = env!("CARGO_MANIFEST_DIR");
         simple_logging::log_to_file(
-            format!("{}\\debug.log", env!("CARGO_MANIFEST_DIR")),
+            format!("{dir}\\debug-{secs}.log"),
             log::LevelFilter::Trace,
         )
         .unwrap();
