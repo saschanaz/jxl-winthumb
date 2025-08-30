@@ -1,4 +1,4 @@
-use std::io::{ErrorKind, Read};
+use std::io::Read;
 
 use windows::Win32::System::Com::IStream;
 
@@ -23,12 +23,7 @@ impl Read for WinStream<'_> {
             )
         }
         .ok()
-        .map_err(|err| {
-            std::io::Error::new(
-                ErrorKind::Other,
-                format!("IStream::Read failed: {}", err.code().0),
-            )
-        })?;
+        .map_err(|err| std::io::Error::other(format!("IStream::Read failed: {}", err.code().0)))?;
         Ok(bytes_read as usize)
     }
 }
