@@ -94,7 +94,7 @@ pub unsafe extern "system" fn DllUnregisterServer() -> HRESULT {
 #[no_mangle]
 #[allow(non_snake_case)]
 #[doc(hidden)]
-pub extern "stdcall" fn DllMain(
+pub extern "system" fn DllMain(
     dll_instance: HINSTANCE,
     reason: u32,
     _reserved: *mut c_void,

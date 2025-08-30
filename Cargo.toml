@@ -1,6 +1,6 @@
 [package]
 name = "jxl-winthumb"
-version = "0.2.11"
+version = "0.2.12"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2018"
 
@@ -11,10 +11,10 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 simple-logging = "2.0.2"
-log = "0.4.22"
+log = "0.4.27"
 windows-core = "0.58.0"
 winreg = "0.52.0"
-jxl-oxide = "0.10.2"
+jxl-oxide = "0.12.4"
 
 [dependencies.windows]
 version = "0.58.0"
@@ -38,4 +38,4 @@ name = "benchmark"
 harness = false
 
 [build-dependencies]
-winresource = "0.1.19"
+winresource = "0.1.23"
