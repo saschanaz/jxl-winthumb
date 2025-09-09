@@ -2,7 +2,7 @@
 name = "jxl-winthumb"
 version = "0.2.12"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
-edition = "2018"
+edition = "2024"
 
 [lib]
 crate-type = ["rlib", "cdylib"]
