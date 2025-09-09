@@ -180,11 +180,10 @@ fn delete_default_if_same(subkey_path: &str, value: &str) -> std::io::Result<()>
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
     if let Ok(subkey) = hkcr.open_subkey_with_flags(subkey_path, KEY_READ | KEY_WRITE) {
         let rv: Result<String, _> = subkey.get_value("");
-        if let Ok(val) = rv {
-            if val == value {
+        if let Ok(val) = rv
+            && val == value {
                 subkey.delete_value("")?;
             }
-        }
     }
     Ok(())
 }
