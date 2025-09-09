@@ -1,11 +1,11 @@
 use windows::core::Interface;
-use winreg::enums::*;
-use winreg::types::ToRegValue;
 use winreg::RegKey;
 use winreg::RegValue;
+use winreg::enums::*;
+use winreg::types::ToRegValue;
 
-use crate::guid::{guid_to_string, JXLWINTHUMB_VENDOR_CLSID};
 use crate::JXLWICBitmapDecoder;
+use crate::guid::{JXLWINTHUMB_VENDOR_CLSID, guid_to_string};
 
 mod kindmap;
 mod property_handler;

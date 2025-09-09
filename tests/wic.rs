@@ -1,6 +1,6 @@
 use jxl_winthumb::JXLWICBitmapDecoder;
 use windows::Win32::Graphics::Imaging::*;
-use windows::Win32::System::Com::{CoCreateInstance, CoInitialize, CLSCTX_INPROC_SERVER};
+use windows::Win32::System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance, CoInitialize};
 use windows::Win32::UI::Shell::SHCreateMemStream;
 
 #[test]
