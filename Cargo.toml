@@ -14,7 +14,7 @@ crate-type = ["rlib", "cdylib"]
 simple-logging = "2.0.2"
 log = "0.4.27"
 windows-core = "0.58.0"
-winreg = "0.52.0"
+winreg = "0.56.0"
 jxl-oxide = "0.12.6"
 
 [dependencies.windows]
