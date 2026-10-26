@@ -46,6 +46,28 @@ impl FrameBuffer {
     }
 }
 
+fn init_color_context(
+    icc: &[u8],
+    ccount: u32,
+    ppicolorcontexts: *mut Option<IWICColorContext>,
+    pcactualcount: *mut u32,
+) -> windows::core::Result<()> {
+    unsafe {
+        if let Some(context) = ppicolorcontexts.as_mut()
+            && ccount == 1
+        {
+            context
+                .as_mut()
+                .expect("There should be a color context here")
+                .InitializeFromMemory(icc)?;
+        }
+        if !pcactualcount.is_null() {
+            *pcactualcount = 1;
+        }
+    }
+    Ok(())
+}
+
 #[implement(Windows::Win32::Graphics::Imaging::IWICBitmapDecoder)]
 #[derive(Default)]
 pub struct JXLWICBitmapDecoder {
@@ -148,21 +170,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
             ppicolorcontexts,
             pcactualcount
         );
-        // TODO: Proper color context
-        unsafe {
-            if let Some(context) = ppicolorcontexts.as_mut()
-                && ccount == 1
-            {
-                context
-                    .as_mut()
-                    .expect("There should be a color context here")
-                    .InitializeFromMemory(&decoded.icc[..])?;
-            }
-            if !pcactualcount.is_null() {
-                *pcactualcount = 1;
-            }
-        }
-        Ok(())
+        init_color_context(&decoded.icc, ccount, ppicolorcontexts, pcactualcount)
     }
 
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
@@ -345,20 +353,7 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode_Impl {
             ppicolorcontexts,
             pcactualcount
         );
-        unsafe {
-            if let Some(context) = ppicolorcontexts.as_mut()
-                && ccount == 1
-            {
-                context
-                    .as_mut()
-                    .expect("There should be a color context here")
-                    .InitializeFromMemory(&self.icc[..])?;
-            }
-            if !pcactualcount.is_null() {
-                *pcactualcount = 1;
-            }
-        }
-        Ok(())
+        init_color_context(&self.icc, ccount, ppicolorcontexts, pcactualcount)
     }
 
     fn GetThumbnail(&self) -> windows::core::Result<IWICBitmapSource> {
