@@ -5,14 +5,16 @@ use windows::Win32::{
     Foundation::*,
     System::Com::{
         IStream,
-        StructuredStorage::{InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector},
+        StructuredStorage::{
+            InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector, PROPVARIANT,
+        },
     },
     UI::Shell::PropertiesSystem::{
         IInitializeWithStream_Impl, IPropertyStore_Impl, IPropertyStoreCache,
-        IPropertyStoreCapabilities_Impl, PROPERTYKEY, PSC_READONLY, PSCreateMemoryPropertyStore,
+        IPropertyStoreCapabilities_Impl, PSC_READONLY, PSCreateMemoryPropertyStore,
     },
 };
-use windows::core::{GUID, HSTRING, Interface, PCWSTR, PROPVARIANT, implement};
+use windows::core::{GUID, HRESULT, HSTRING, Interface, PCWSTR, Ref, implement};
 
 use crate::winstream::WinStream;
 use jxl_oxide::JxlImage;
@@ -42,8 +44,8 @@ impl JXLPropertyStore {
 }
 
 impl IInitializeWithStream_Impl for JXLPropertyStore_Impl {
-    fn Initialize(&self, pstream: Option<&IStream>, _grfmode: u32) -> windows::core::Result<()> {
-        let stream = WinStream::from(pstream.unwrap());
+    fn Initialize(&self, pstream: Ref<IStream>, _grfmode: u32) -> windows::core::Result<()> {
+        let stream = WinStream::from(pstream.ok()?);
         let reader = BufReader::new(stream);
 
         let image = JxlImage::builder().read(reader).map_err(|err| {
@@ -113,10 +115,7 @@ impl IPropertyStore_Impl for JXLPropertyStore_Impl {
     }
 
     fn GetAt(&self, iprop: u32, pkey: *mut PROPERTYKEY) -> windows::core::Result<()> {
-        unsafe {
-            self.get_props()?.GetAt(iprop, pkey);
-        }
-        Ok(())
+        unsafe { self.get_props()?.GetAt(iprop, pkey) }
     }
 
     fn GetValue(&self, key: *const PROPERTYKEY) -> windows::core::Result<PROPVARIANT> {
@@ -143,10 +142,7 @@ impl IPropertyStore_Impl for JXLPropertyStore_Impl {
 }
 
 impl IPropertyStoreCapabilities_Impl for JXLPropertyStore_Impl {
-    fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> windows::core::Result<()> {
-        Err(windows::core::Error::new(
-            WINCODEC_ERR_UNSUPPORTEDOPERATION,
-            "Setter not supported",
-        ))
+    fn IsPropertyWritable(&self, _key: *const PROPERTYKEY) -> HRESULT {
+        WINCODEC_ERR_UNSUPPORTEDOPERATION
     }
 }
