@@ -154,12 +154,13 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
         // TODO: Proper color context
         unsafe {
             if let Some(context) = ppicolorcontexts.as_mut()
-                && ccount == 1 {
-                    context
-                        .as_mut()
-                        .expect("There should be a color context here")
-                        .InitializeFromMemory(&decoded.icc[..])?;
-                }
+                && ccount == 1
+            {
+                context
+                    .as_mut()
+                    .expect("There should be a color context here")
+                    .InitializeFromMemory(&decoded.icc[..])?;
+            }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
             }
@@ -349,12 +350,13 @@ impl IWICBitmapFrameDecode_Impl for JXLWICBitmapFrameDecode_Impl {
         );
         unsafe {
             if let Some(context) = ppicolorcontexts.as_mut()
-                && ccount == 1 {
-                    context
-                        .as_mut()
-                        .expect("There should be a color context here")
-                        .InitializeFromMemory(&self.icc[..])?;
-                }
+                && ccount == 1
+            {
+                context
+                    .as_mut()
+                    .expect("There should be a color context here")
+                    .InitializeFromMemory(&self.icc[..])?;
+            }
             if !pcactualcount.is_null() {
                 *pcactualcount = 1;
             }
