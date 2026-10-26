@@ -3,6 +3,7 @@ name = "jxl-winthumb"
 version = "0.2.13"
 authors = ["Kagami Sascha Rosylight <saschanaz@outlook.com>"]
 edition = "2024"
+repository = "https://github.com/saschanaz/jxl-winthumb"
 
 [lib]
 crate-type = ["rlib", "cdylib"]
@@ -39,3 +40,8 @@ harness = false
 
 [build-dependencies]
 winresource = "0.1.23"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
