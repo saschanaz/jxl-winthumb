@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use windows::core::Interface;
 use winreg::RegKey;
 use winreg::RegValue;
@@ -46,14 +48,14 @@ fn set_pattern(key: &RegKey, pattern: Vec<u8>) -> std::io::Result<()> {
         "Pattern",
         &RegValue {
             vtype: REG_BINARY,
-            bytes: pattern,
+            bytes: Cow::Borrowed(&pattern[..]),
         },
     )?;
     key.set_raw_value(
         "Mask",
         &RegValue {
             vtype: REG_BINARY,
-            bytes: vec![0xff; len],
+            bytes: Cow::Borrowed(&vec![0xff; len][..]),
         },
     )?;
 
@@ -113,11 +115,13 @@ fn unregister_clsid() {
     .ok();
 }
 
-fn create_expand_sz(value: &str) -> RegValue {
-    RegValue {
-        vtype: winreg::enums::REG_EXPAND_SZ,
-        bytes: value.to_reg_value().bytes,
-    }
+macro_rules! create_expand_sz {
+    ($value:expr) => {
+        RegValue {
+            vtype: winreg::enums::REG_EXPAND_SZ,
+            bytes: $value.to_reg_value().bytes,
+        }
+    };
 }
 
 fn register_property_list(system_ext_key: &RegKey) -> std::io::Result<()> {
@@ -154,14 +158,14 @@ fn register_provider() -> std::io::Result<()> {
     let (open_key, _) = progid_shell_key.create_subkey("open")?;
     open_key.set_raw_value(
         "MuiVerb",
-        &create_expand_sz("@%PROGRAMFILES%\\Windows Photo Viewer\\photoviewer.dll,-3043"),
+        &create_expand_sz!("@%PROGRAMFILES%\\Windows Photo Viewer\\photoviewer.dll,-3043"),
     )?;
-    open_key.create_subkey("command")?.0.set_raw_value("", &create_expand_sz("%SystemRoot%\\System32\\rundll32.exe \"%ProgramFiles%\\Windows Photo Viewer\\PhotoViewer.dll\", ImageView_Fullscreen %1"))?;
+    open_key.create_subkey("command")?.0.set_raw_value("", &create_expand_sz!("%SystemRoot%\\System32\\rundll32.exe \"%ProgramFiles%\\Windows Photo Viewer\\PhotoViewer.dll\", ImageView_Fullscreen %1"))?;
     open_key
         .create_subkey("DropTarget")?
         .0
         .set_value("", &"{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}")?;
-    progid_shell_key.create_subkey("printto\\command")?.0.set_raw_value("name", &create_expand_sz("%SystemRoot%\\System32\\rundll32.exe \"%SystemRoot%\\System32\\shimgvw.dll\", ImageView_PrintTo /pt \"%1\" \"%2\" \"%3\" \"%4\""))?;
+    progid_shell_key.create_subkey("printto\\command")?.0.set_raw_value("name", &create_expand_sz!("%SystemRoot%\\System32\\rundll32.exe \"%SystemRoot%\\System32\\shimgvw.dll\", ImageView_PrintTo /pt \"%1\" \"%2\" \"%3\" \"%4\""))?;
 
     // Integration with the Windows Thumbnail Cache
     // https://docs.microsoft.com/en-us/windows/win32/wic/-wic-integrationregentries#integration-with-the-windows-thumbnail-cache

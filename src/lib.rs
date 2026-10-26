@@ -1,13 +1,10 @@
 #![crate_type = "dylib"]
 // https://github.com/microsoft/windows-rs/issues/1506
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
-// TODO: Update windows-rs
-#![allow(unused_must_use)]
-#![allow(non_snake_case)]
 
 use jxl_oxide::{JxlImage, PixelFormat};
 use std::{cell::RefCell, io::BufReader, rc::Rc};
-use windows::core::{GUID, Interface, implement};
+use windows::core::{GUID, Interface, Ref, implement};
 
 mod registry;
 mod winstream;
@@ -61,7 +58,7 @@ impl JXLWICBitmapDecoder {
 }
 
 impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
-    fn QueryCapability(&self, _pistream: Option<&IStream>) -> windows::core::Result<u32> {
+    fn QueryCapability(&self, _pistream: Ref<IStream>) -> windows::core::Result<u32> {
         log::trace!("QueryCapability");
         Ok((WICBitmapDecoderCapabilityCanDecodeSomeImages.0
             | WICBitmapDecoderCapabilityCanDecodeAllImages.0) as u32)
@@ -69,12 +66,12 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
 
     fn Initialize(
         &self,
-        pistream: Option<&IStream>,
+        pistream: Ref<IStream>,
         _cacheoptions: WICDecodeOptions,
     ) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapDecoder::Initialize");
 
-        let stream = WinStream::from(pistream.unwrap());
+        let stream = WinStream::from(pistream.ok()?);
         let reader = BufReader::new(stream);
 
         let image = JxlImage::builder().read(reader).map_err(|err| {
@@ -117,7 +114,7 @@ impl IWICBitmapDecoder_Impl for JXLWICBitmapDecoder_Impl {
         }
     }
 
-    fn CopyPalette(&self, _pipalette: Option<&IWICPalette>) -> windows::core::Result<()> {
+    fn CopyPalette(&self, _pipalette: Ref<IWICPalette>) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapDecoder::CopyPalette");
         // TODO
         WINCODEC_ERR_PALETTEUNAVAILABLE.ok()
@@ -289,7 +286,7 @@ impl IWICBitmapSource_Impl for JXLWICBitmapFrameDecode_Impl {
         Ok(())
     }
 
-    fn CopyPalette(&self, _pipalette: Option<&IWICPalette>) -> windows::core::Result<()> {
+    fn CopyPalette(&self, _pipalette: Ref<IWICPalette>) -> windows::core::Result<()> {
         log::trace!("JXLWICBitmapFrameDecode::CopyPalette");
         WINCODEC_ERR_PALETTEUNAVAILABLE.ok()
     }

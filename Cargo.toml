@@ -13,20 +13,20 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 simple-logging = "2.0.2"
 log = "0.4.27"
-windows-core = "0.58.0"
-winreg = "0.52.0"
+windows-core = "0.62.2"
+winreg = "0.56.0"
 jxl-oxide = "0.12.6"
 
 [dependencies.windows]
-version = "0.58.0"
+version = "0.62.2"
 features = [
-  "implement",
   "Win32_Graphics_Imaging",
   "Win32_Foundation",
   "Win32_System_Com",
   "Win32_System_Com_StructuredStorage",
   "Win32_System_LibraryLoader",
   "Win32_System_SystemServices",
+  "Win32_System_Variant",
   "Win32_UI_Shell",
   "Win32_UI_Shell_PropertiesSystem",
 ]
