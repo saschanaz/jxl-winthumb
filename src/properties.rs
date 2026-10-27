@@ -9,6 +9,7 @@ use windows::Win32::{
             InitPropVariantFromStringVector, InitPropVariantFromUInt32Vector, PROPVARIANT,
         },
     },
+    UI::Shell::PSGUID_IMAGESUMMARYINFORMATION,
     UI::Shell::PropertiesSystem::{
         IInitializeWithStream_Impl, IPropertyStore_Impl, IPropertyStoreCache,
         IPropertyStoreCapabilities_Impl, PSC_READONLY, PSCreateMemoryPropertyStore,
@@ -73,12 +74,6 @@ impl IInitializeWithStream_Impl for JXLPropertyStore_Impl {
                 "Property store not initialized",
             ));
         };
-
-        // XXX: This is copied from um/propkey.h.
-        // https://github.com/microsoft/win32metadata/issues/730
-        #[allow(non_snake_case)]
-        let PSGUID_IMAGESUMMARYINFORMATION =
-            GUID::from_u128(0x6444048F_4C8B_11D1_8B70_080036B11A03);
 
         let variant = unsafe { InitPropVariantFromUInt32Vector(Some(&[width]))? };
         let propkey = PROPERTYKEY {
