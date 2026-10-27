@@ -21,6 +21,7 @@ mod dll;
 mod guid;
 
 mod properties;
+pub use properties::JXLPropertyStore;
 
 pub struct DecodedResult {
     image: JxlImage,
