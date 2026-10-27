@@ -54,12 +54,12 @@ fn init_color_context(
 ) -> windows::core::Result<()> {
     unsafe {
         if let Some(context) = ppicolorcontexts.as_mut()
-            && ccount == 1
+            && ccount >= 1
         {
-            context
-                .as_mut()
-                .expect("There should be a color context here")
-                .InitializeFromMemory(icc)?;
+            let Some(context) = context.as_mut() else {
+                return Err(E_INVALIDARG.into());
+            };
+            context.InitializeFromMemory(icc)?;
         }
         if !pcactualcount.is_null() {
             *pcactualcount = 1;
